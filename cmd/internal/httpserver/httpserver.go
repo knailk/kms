@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 
+	"kms/app/errs"
 	"kms/cmd/internal/httpserver/driver"
 )
 
