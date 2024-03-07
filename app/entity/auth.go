@@ -187,7 +187,7 @@ type Permission struct {
 
 // Validate determines if the Permission is valid
 func (p Permission) Validate() error {
-	const op errs.Op = "diygoapi/Permission.Validate"
+	const op errs.Op = "entity/Permission.Validate"
 
 	switch {
 	case p.ID == uuid.Nil:
@@ -220,7 +220,7 @@ type Role struct {
 
 // Validate determines if the Role is valid.
 func (r Role) Validate() error {
-	const op errs.Op = "diygoapi/Role.Validate"
+	const op errs.Op = "entity/Role.Validate"
 
 	switch {
 	case r.ID == uuid.Nil:

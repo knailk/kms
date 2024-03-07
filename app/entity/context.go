@@ -24,7 +24,7 @@ func NewContextWithApp(ctx context.Context, a *App) context.Context {
 // AppFromRequest is a helper function which returns the App from the
 // request context.
 func AppFromRequest(r *http.Request) (*App, error) {
-	const op errs.Op = "diygoapi/AppFromRequest"
+	const op errs.Op = "entity/AppFromRequest"
 
 	app, err := AppFromContext(r.Context())
 	if err != nil {
@@ -36,7 +36,7 @@ func AppFromRequest(r *http.Request) (*App, error) {
 
 // AppFromContext returns the App from the given context
 func AppFromContext(ctx context.Context) (*App, error) {
-	const op errs.Op = "diygoapi/AppFromContext"
+	const op errs.Op = "entity/AppFromContext"
 
 	a, ok := ctx.Value(appContextKey).(*App)
 	if !ok {
@@ -52,7 +52,7 @@ func NewContextWithUser(ctx context.Context, u *User) context.Context {
 
 // UserFromRequest returns the User from the request context
 func UserFromRequest(r *http.Request) (u *User, err error) {
-	const op errs.Op = "diygoapi/UserFromRequest"
+	const op errs.Op = "entity/UserFromRequest"
 
 	u, err = UserFromContext(r.Context())
 	if err != nil {
@@ -64,7 +64,7 @@ func UserFromRequest(r *http.Request) (u *User, err error) {
 
 // UserFromContext returns the User from the given Context
 func UserFromContext(ctx context.Context) (*User, error) {
-	const op errs.Op = "diygoapi/UserFromContext"
+	const op errs.Op = "entity/UserFromContext"
 
 	u, ok := ctx.Value(contextKeyUser).(*User)
 	if !ok {
@@ -77,7 +77,7 @@ func UserFromContext(ctx context.Context) (*User, error) {
 // struct from the App and User set to the request context.
 // The moment is also set to time.Now
 func AuditFromRequest(r *http.Request) (adt Audit, err error) {
-	const op errs.Op = "diygoapi/AuditFromRequest"
+	const op errs.Op = "entity/AuditFromRequest"
 
 	var a *App
 	a, err = AppFromRequest(r)
@@ -105,7 +105,7 @@ func NewContextWithAuthParams(ctx context.Context, ap *AuthenticationParams) con
 
 // AuthParamsFromContext returns the AuthenticationParams from the given context
 func AuthParamsFromContext(ctx context.Context) (*AuthenticationParams, error) {
-	const op errs.Op = "diygoapi/AuthParamsFromContext"
+	const op errs.Op = "entity/AuthParamsFromContext"
 
 	a, ok := ctx.Value(authParamsContextKey).(*AuthenticationParams)
 	if !ok {

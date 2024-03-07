@@ -43,7 +43,7 @@ import (
 
 // // Validate determines whether the Person has proper data to be considered valid
 // func (p Person) Validate() (err error) {
-// 	const op errs.Op = "diygoapi/Person.Validate"
+// 	const op errs.Op = "entity/Person.Validate"
 
 // 	switch {
 // 	case p.ID == uuid.Nil:
@@ -128,7 +128,7 @@ type User struct {
 
 // Validate determines whether the Person has proper data to be considered valid
 func (u User) Validate() error {
-	const op errs.Op = "diygoapi/User.Validate"
+	const op errs.Op = "entity/User.Validate"
 
 	switch {
 	case u.ID == uuid.Nil:

@@ -29,7 +29,7 @@ type App struct {
 
 // AddKey validates and adds an API key to the slice of App API keys
 func (a *App) AddKey(key APIKey) error {
-	const op errs.Op = "diygoapi/App.AddKey"
+	const op errs.Op = "entity/App.AddKey"
 
 	err := key.validate()
 	if err != nil {
@@ -43,7 +43,7 @@ func (a *App) AddKey(key APIKey) error {
 // ValidateKey determines if the app has a matching key for the input
 // and if that key is valid
 func (a *App) ValidateKey(realm, matchKey string) error {
-	const op errs.Op = "diygoapi/App.ValidateKey"
+	const op errs.Op = "entity/App.ValidateKey"
 
 	key, err := a.matchKey(realm, matchKey)
 	if err != nil {
@@ -59,7 +59,7 @@ func (a *App) ValidateKey(realm, matchKey string) error {
 // MatchKey returns the matching Key given the string, if exists.
 // An error will be sent if no match is found.
 func (a *App) matchKey(realm, matchKey string) (APIKey, error) {
-	const op errs.Op = "diygoapi/App.matchKey"
+	const op errs.Op = "entity/App.matchKey"
 
 	for _, apiKey := range a.APIKeys {
 		if matchKey == apiKey.Key() {
@@ -68,7 +68,6 @@ func (a *App) matchKey(realm, matchKey string) (APIKey, error) {
 	}
 	return APIKey{}, errs.E(op, errs.Unauthenticated, errs.Realm(realm), "Key does not match any keys for the App")
 }
-
 
 // APIKey is an API key for interacting with the system. The API key string
 // is delivered to the client along with an App ID. The API Key acts as a
@@ -89,7 +88,7 @@ type APIKey struct {
 func NewAPIKey(g APIKeyGenerator, ek *[32]byte, deactivation time.Time) (APIKey, error) {
 	const (
 		n  int = 16
-		op     = "diygoapi/NewAPIKey"
+		op     = "entity/NewAPIKey"
 	)
 	var (
 		k   string
@@ -111,7 +110,7 @@ func NewAPIKey(g APIKeyGenerator, ek *[32]byte, deactivation time.Time) (APIKey,
 
 // NewAPIKeyFromCipher initializes an APIKey given a ciphertext string.
 func NewAPIKeyFromCipher(ciphertext string, ek *[32]byte) (APIKey, error) {
-	const op errs.Op = "diygoapi/NewAPIKeyFromCipher"
+	const op errs.Op = "entity/NewAPIKeyFromCipher"
 
 	var (
 		eak []byte
@@ -157,7 +156,7 @@ func (a *APIKey) SetDeactivationDate(t time.Time) {
 // SetStringAsDeactivationDate sets the deactivation date value to
 // AppAPIkey given a string in RFC3339 format
 func (a *APIKey) SetStringAsDeactivationDate(s string) error {
-	const op errs.Op = "diygoapi/APIKey.SetStringAsDeactivationDate"
+	const op errs.Op = "entity/APIKey.SetStringAsDeactivationDate"
 
 	t, err := time.Parse(time.RFC3339, s)
 	if err != nil {
@@ -169,7 +168,7 @@ func (a *APIKey) SetStringAsDeactivationDate(s string) error {
 }
 
 func (a *APIKey) validate() error {
-	const op errs.Op = "diygoapi/APIKey.validate"
+	const op errs.Op = "entity/APIKey.validate"
 
 	if a.ciphertextbytes == nil {
 		return errs.E(op, "ciphertext must have a value")

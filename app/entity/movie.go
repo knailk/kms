@@ -22,7 +22,7 @@ type Movie struct {
 
 // IsValid performs validation of the struct
 func (m *Movie) IsValid() error {
-	const op errs.Op = "diygoapi/Movie.IsValid"
+	const op errs.Op = "entity/Movie.IsValid"
 
 	switch {
 	case m.ExternalID.String() == "":

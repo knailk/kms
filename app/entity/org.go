@@ -19,7 +19,7 @@ type OrgKind struct {
 
 // Validate determines whether the Person has proper data to be considered valid
 func (o OrgKind) Validate() error {
-	const op errs.Op = "diygoapi/OrgKind.Validate"
+	const op errs.Op = "entity/OrgKind.Validate"
 
 	switch {
 	case o.ID == uuid.Nil:
@@ -50,7 +50,7 @@ type Org struct {
 
 // Validate determines whether the Org has proper data to be considered valid
 func (o Org) Validate() (err error) {
-	const op errs.Op = "diygoapi/Org.Validate"
+	const op errs.Op = "entity/Org.Validate"
 
 	switch {
 	case o.ID == uuid.Nil:
