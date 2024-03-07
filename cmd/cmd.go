@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"kms/cmd/internal/database/sqldb"
-	"kms/internal/errs"
+	"kms/app/errs"
+	"kms/app/secure"
+	"kms/internal/database/sqldb"
+	"kms/internal/httpserver"
 	"kms/pkg/logger"
 	"os"
 
@@ -165,9 +167,9 @@ func Run(args []string) (err error) {
 		lgr.Fatal().Err(err).Msg("portRange() error")
 	}
 
-	// initialize Server enfolding a http.Server with default timeouts
+	// initialize HTTP Server enfolding a http.Server with default timeouts
 	// a Gorilla mux router with /api subroute and a zerolog.Logger
-	s := server.New(server.NewMuxRouter(), server.NewDriver(), lgr)
+	s := httpserver.New(httpserver.NewMuxRouter(), httpserver.NewDriver(), lgr)
 
 	// set listener address
 	s.Addr = fmt.Sprintf(":%d", flgs.port)
@@ -210,7 +212,7 @@ func Run(args []string) (err error) {
 
 	matcher := language.NewMatcher(supportedLangs)
 
-	s.Services = server.Services{
+	s.Services = httpserver.Services{
 		OrgServicer: &service.OrgService{
 			Datastorer:      db,
 			APIKeyGenerator: secure.RandomGenerator{},
