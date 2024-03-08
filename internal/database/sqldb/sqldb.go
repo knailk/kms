@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/rs/zerolog"
+	"gorm.io/gorm"
 )
 
 const (
@@ -114,21 +115,25 @@ func (dsn PostgreSQLDSN) KeywordValueConnectionString() string {
 
 // NewPostgreSQLPool creates a new db pool and establishes a connection.
 // In addition, returns a Close function to defer closing the pool.
-func NewPostgreSQLPool(ctx context.Context, lgr zerolog.Logger, dsn PostgreSQLDSN) (pool *pgxpool.Pool, close func(), err error) {
+func NewPostgreSQLPool(ctx context.Context, lgr zerolog.Logger, dsn PostgreSQLDSN) (*gorm.DB, error) {
 	const op errs.Op = "sqldb/NewPostgreSQLPool"
 
-	f := func() {}
-
-	// Open the postgres database using the pgxpool driver (pq)
-	// func Open(driverName, dataSourceName string) (*DB, error)
-	pool, err = pgxpool.Connect(ctx, dsn.KeywordValueConnectionString())
+	// Open the postgres database using the postgres driver (pq)
+	// func Open(dataSourceName string) (*DB, error)
+	dbClient, err := database.Open(dsn)
 	if err != nil {
-		return nil, f, errs.E(op, errs.Database, err)
+		return nil, err
 	}
-
-	
 
 	lgr.Info().Msgf("sql database opened for %s on port %d", dsn.Host, dsn.Port)
 
-	return pool, func() { pool.Close() }, nil
+	sqlDB, err := dbClient.DB()
+	if err != nil {
+		return nil, err
+	}
+	if err := sqlDB.Ping(); err != nil {
+		return nil, err
+	}
+
+	return dbClient, nil
 }

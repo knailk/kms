@@ -12,7 +12,6 @@ import (
 
 	"kms/app/errs"
 	"kms/app/service"
-	"kms/internal/database/sqldb"
 	"kms/internal/httpserver/driver"
 )
 
@@ -30,7 +29,6 @@ type Services struct {
 	PermissionServicer     service.PermissionServicer
 	RoleServicer           service.RoleServicer
 	MovieServicer          service.MovieServicer
-	PingService            sqldb.PingServicer
 }
 
 // Server represents an HTTP server.

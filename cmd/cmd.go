@@ -188,22 +188,9 @@ func Run(args []string) (err error) {
 	ctx := context.Background()
 
 	// initialize PostgreSQL database
-	var (
-		dbpool  *pgxpool.Pool
-		cleanup func()
-	)
-	dbpool, cleanup, err = sqldb.NewPostgreSQLPool(ctx, lgr, newPostgreSQLDSN(flgs))
+	db, err := sqldb.NewPostgreSQLPool(ctx, lgr, newPostgreSQLDSN(flgs))
 	if err != nil {
 		lgr.Fatal().Err(err).Msg("sqldb.NewPostgreSQLPool error")
-	}
-	defer cleanup()
-
-	// create a new DB using the pool and established connection
-	db := sqldb.NewDB(dbpool)
-
-	err = db.ValidatePool(ctx, lgr)
-	if err != nil {
-		lgr.Fatal().Err(err).Msg("db.ValidatePool error")
 	}
 
 	var supportedLangs = []language.Tag{
