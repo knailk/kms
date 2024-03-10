@@ -1,0 +1,50 @@
+env: development
+platform: local
+app:
+  name: kms
+  version: 0.1
+  profiling_enabled: false
+logger:
+    minLogLevel: trace,
+    logLevel: debug,
+    logErrorStack: false
+db:
+  host: localhost
+  user: admin
+  password: ndtd1234
+  dbName: develop
+  port: 5432
+  searchPath: demo
+encryptionKey: d9291b175784efbaa49f88a3891612b85889311fcbd9b3df34c7e410e9ddef7c
+
+gcp:
+  projectID: kms,
+  artifactRegistry: 
+    repoLocation: us-central1,
+    repoName: kms-docker-repo,
+    imageID: staging,
+    tag: latest
+  cloudSQL: 
+    instanceName: kms-db,
+    instanceConnectionName: kms:us-central1:kms-db
+  cloudRun: 
+    serviceName: staging  
+
+cache:
+  url: redis://default:1234@localhost:16379/0
+  pool_size: 10
+  use_tls: false
+httpServer:
+  port: 8080
+  cors:
+    allowOrigins:
+      - http://localhost:3000 
+      
+session:
+  basicAuth:
+    username: admin
+    password: ndtd1234
+  jwt:
+    secret: dummy_for_local
+    accessTokenExp: 14400
+    refreshTokenExp: 86400

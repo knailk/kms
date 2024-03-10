@@ -1,0 +1,27 @@
+# Used for development
+version: "3.1"
+
+services:
+  postgre:
+    container_name: postgre_local
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=ndtd1234
+      - POSTGRES_DB=local
+    ports:
+      - 7432:5432
+    restart: always
+  redis:
+    image: redis:6.0.8-alpine
+    ports:
+      - 16379:6379
+    volumes:
+      - redisconf:/redis.conf
+      - redis:/var/lib/redis
+    command: redis-server --requirepass 1234
+
+volumes:
+  mongodb:
+  redisconf:
+  redis:
