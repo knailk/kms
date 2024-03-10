@@ -36,7 +36,7 @@ type Services struct {
 
 // Server represents an HTTP server.
 type Server struct {
-	router *mux.Router
+	router *gin.Engine
 	Driver driver.Server
 
 	// all logging is done with a zerolog.Logger
@@ -59,12 +59,12 @@ type task struct {
 // New initializes a new Server and registers
 // routes to the given router
 
-func New(rtr *mux.Router, serverDriver driver.Server, tasks *shutdown.Tasks, lgr zerolog.Logger) *Server {
+func New(engine *gin.Engine, serverDriver driver.Server, tasks *shutdown.Tasks, lgr zerolog.Logger) *Server {
 	if tasks.HasStopSignal() {
 		return nil
 	}
-
-	s := &Server{router: rtr}
+	t := &task{}
+	s := &Server{router: engine}
 	s.Logger = lgr
 	s.Driver = serverDriver
 
@@ -101,7 +101,8 @@ type Driver struct {
 
 // NewDriver creates a Driver enfolding a http.Server with default timeouts.
 func NewDriver() *Driver {
-	return &Driver{
+	t := &task{}
+	t.srv = &Driver{
 		Server: http.Server{
 			ReadTimeout:  30 * time.Second,
 			WriteTimeout: 30 * time.Second,
@@ -133,6 +134,13 @@ func NewGinRouter() *gin.Engine {
 
 	// initializer gin-gonic/gin router
 	r := gin.New()
+
+	initMiddlewares(router, cfg)
+
+	// Init routes
+	if err := initRoutes(ctx, router, cfg, provider); err != nil {
+		return nil, err
+	}
 
 	return r
 }

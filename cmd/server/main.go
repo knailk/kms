@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	if err := cmd.Run(os.Args); err != nil {
+	if err := cmd.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "error from commands.Run(): %s\n", err)
 		os.Exit(1)
 	}
