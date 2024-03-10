@@ -3,16 +3,19 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 
 	"kms/app/errs"
 	"kms/app/service"
 	"kms/internal/httpserver/driver"
+	"kms/internal/shutdown"
 )
 
 const pathPrefix string = "/api"
@@ -49,9 +52,18 @@ type Server struct {
 	Services
 }
 
+type task struct {
+	srv *http.Server
+}
+
 // New initializes a new Server and registers
 // routes to the given router
-func New(rtr *mux.Router, serverDriver driver.Server, lgr zerolog.Logger) *Server {
+
+func New(rtr *mux.Router, serverDriver driver.Server, tasks *shutdown.Tasks, lgr zerolog.Logger) *Server {
+	if tasks.HasStopSignal() {
+		return nil
+	}
+
 	s := &Server{router: rtr}
 	s.Logger = lgr
 	s.Driver = serverDriver
@@ -112,20 +124,17 @@ func (d *Driver) Shutdown(ctx context.Context) error {
 	return d.Server.Shutdown(ctx)
 }
 
-// NewMuxRouter initializes a gorilla/mux router and
-// adds the /api subroute to it
-func NewMuxRouter() *mux.Router {
-	// initializer gorilla/mux router
-	r := mux.NewRouter()
+// NewGinRouter initializes a gin-gonic/gin router
+func NewGinRouter() *gin.Engine {
+	// Enable Release mode for production
+	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	// send Router through PathPrefix method to validate any standard
-	// subroutes you may want for your APIs. e.g. I always want to be
-	// sure that every request has "/api" as part of its path prefix
-	// without having to put it into every handle path in my various
-	// routing functions
-	s := r.PathPrefix(pathPrefix).Subrouter()
+	// initializer gin-gonic/gin router
+	r := gin.New()
 
-	return s
+	return r
 }
 
 // decoderErr is a convenience function to handle errors returned by
@@ -146,6 +155,17 @@ func decoderErr(err error) error {
 	// return other errors
 	case err != nil:
 		return errs.E(op, err)
+	}
+	return nil
+}
+
+func (t *task) Name() string {
+	return "httpserver"
+}
+
+func (t *task) Shutdown(ctx context.Context) error {
+	if err := t.srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown http server: %w", err)
 	}
 	return nil
 }
