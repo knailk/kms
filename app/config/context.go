@@ -1,10 +1,11 @@
-package entity
+package config
 
 import (
 	"context"
 	"net/http"
 	"time"
 
+	"kms/app/entity"
 	"kms/app/errs"
 )
 
@@ -17,13 +18,13 @@ const (
 )
 
 // NewContextWithApp returns a new context with the given App
-func NewContextWithApp(ctx context.Context, a *App) context.Context {
+func NewContextWithApp(ctx context.Context, a *entity.App) context.Context {
 	return context.WithValue(ctx, appContextKey, a)
 }
 
 // AppFromRequest is a helper function which returns the App from the
 // request context.
-func AppFromRequest(r *http.Request) (*App, error) {
+func AppFromRequest(r *http.Request) (*entity.App, error) {
 	const op errs.Op = "entity/AppFromRequest"
 
 	app, err := AppFromContext(r.Context())
@@ -35,10 +36,10 @@ func AppFromRequest(r *http.Request) (*App, error) {
 }
 
 // AppFromContext returns the App from the given context
-func AppFromContext(ctx context.Context) (*App, error) {
+func AppFromContext(ctx context.Context) (*entity.App, error) {
 	const op errs.Op = "entity/AppFromContext"
 
-	a, ok := ctx.Value(appContextKey).(*App)
+	a, ok := ctx.Value(appContextKey).(*entity.App)
 	if !ok {
 		return a, errs.E(op, errs.NotExist, "App not set to context")
 	}
@@ -46,12 +47,12 @@ func AppFromContext(ctx context.Context) (*App, error) {
 }
 
 // NewContextWithUser returns a new context with the given User
-func NewContextWithUser(ctx context.Context, u *User) context.Context {
+func NewContextWithUser(ctx context.Context, u *entity.User) context.Context {
 	return context.WithValue(ctx, contextKeyUser, u)
 }
 
 // UserFromRequest returns the User from the request context
-func UserFromRequest(r *http.Request) (u *User, err error) {
+func UserFromRequest(r *http.Request) (u *entity.User, err error) {
 	const op errs.Op = "entity/UserFromRequest"
 
 	u, err = UserFromContext(r.Context())
@@ -63,10 +64,10 @@ func UserFromRequest(r *http.Request) (u *User, err error) {
 }
 
 // UserFromContext returns the User from the given Context
-func UserFromContext(ctx context.Context) (*User, error) {
+func UserFromContext(ctx context.Context) (*entity.User, error) {
 	const op errs.Op = "entity/UserFromContext"
 
-	u, ok := ctx.Value(contextKeyUser).(*User)
+	u, ok := ctx.Value(contextKeyUser).(*entity.User)
 	if !ok {
 		return nil, errs.E(op, errs.NotExist, "User not set properly to context")
 	}
@@ -76,19 +77,19 @@ func UserFromContext(ctx context.Context) (*User, error) {
 // AuditFromRequest is a convenience function that sets up an Audit
 // struct from the App and User set to the request context.
 // The moment is also set to time.Now
-func AuditFromRequest(r *http.Request) (adt Audit, err error) {
+func AuditFromRequest(r *http.Request) (adt entity.Audit, err error) {
 	const op errs.Op = "entity/AuditFromRequest"
 
-	var a *App
+	var a *entity.App
 	a, err = AppFromRequest(r)
 	if err != nil {
-		return Audit{}, errs.E(op, err)
+		return entity.Audit{}, errs.E(op, err)
 	}
 
-	var u *User
+	var u *entity.User
 	u, err = UserFromRequest(r)
 	if err != nil {
-		return Audit{}, errs.E(op, err)
+		return entity.Audit{}, errs.E(op, err)
 	}
 
 	adt.App = a
@@ -99,15 +100,15 @@ func AuditFromRequest(r *http.Request) (adt Audit, err error) {
 }
 
 // NewContextWithAuthParams returns a new context with the given AuthenticationParams
-func NewContextWithAuthParams(ctx context.Context, ap *AuthenticationParams) context.Context {
+func NewContextWithAuthParams(ctx context.Context, ap *entity.AuthenticationParams) context.Context {
 	return context.WithValue(ctx, authParamsContextKey, ap)
 }
 
 // AuthParamsFromContext returns the AuthenticationParams from the given context
-func AuthParamsFromContext(ctx context.Context) (*AuthenticationParams, error) {
+func AuthParamsFromContext(ctx context.Context) (*entity.AuthenticationParams, error) {
 	const op errs.Op = "entity/AuthParamsFromContext"
 
-	a, ok := ctx.Value(authParamsContextKey).(*AuthenticationParams)
+	a, ok := ctx.Value(authParamsContextKey).(*entity.AuthenticationParams)
 	if !ok {
 		return a, errs.E(op, errs.NotExist, "Authentication Params not set to context")
 	}
