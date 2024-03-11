@@ -8,17 +8,25 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/mux"
-	"github.com/rs/zerolog"
-
+	"kms/app/config"
 	"kms/app/errs"
+	mdlwCORS "kms/app/middleware/cors"
+	mdlwRecovery "kms/app/middleware/recovery"
+	mdlwSecHdr "kms/app/middleware/secureheaders"
 	"kms/app/service"
 	"kms/internal/httpserver/driver"
 	"kms/internal/shutdown"
+	"kms/pkg/logger"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 )
 
-const pathPrefix string = "/api"
+const (
+	apiHealthPath = "/"
+	pathPrefix    = "/api"
+)
 
 // Services are used by the application service handlers
 type Services struct {
@@ -39,9 +47,6 @@ type Server struct {
 	router *gin.Engine
 	Driver driver.Server
 
-	// all logging is done with a zerolog.Logger
-	Logger zerolog.Logger
-
 	// Addr optionally specifies the TCP address for the server to listen on,
 	// in the form "host:port". If empty, ":http" (port 80) is used.
 	// The service names are defined in RFC 6335 and assigned by IANA.
@@ -56,16 +61,24 @@ type task struct {
 	srv *http.Server
 }
 
+func (t *task) Name() string {
+	return "httpserver"
+}
+
+func (t *task) Shutdown(ctx context.Context) error {
+	if err := t.srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown http server: %w", err)
+	}
+	return nil
+}
+
 // New initializes a new Server and registers
 // routes to the given router
-
-func New(engine *gin.Engine, serverDriver driver.Server, tasks *shutdown.Tasks, lgr zerolog.Logger) *Server {
+func New(engine *gin.Engine, serverDriver driver.Server, tasks *shutdown.Tasks) *Server {
 	if tasks.HasStopSignal() {
 		return nil
 	}
-	t := &task{}
 	s := &Server{router: engine}
-	s.Logger = lgr
 	s.Driver = serverDriver
 
 	// register routes to the router
@@ -101,8 +114,7 @@ type Driver struct {
 
 // NewDriver creates a Driver enfolding a http.Server with default timeouts.
 func NewDriver() *Driver {
-	t := &task{}
-	t.srv = &Driver{
+	return &Driver{
 		Server: http.Server{
 			ReadTimeout:  30 * time.Second,
 			WriteTimeout: 30 * time.Second,
@@ -126,23 +138,24 @@ func (d *Driver) Shutdown(ctx context.Context) error {
 }
 
 // NewGinRouter initializes a gin-gonic/gin router
-func NewGinRouter() *gin.Engine {
+func NewGinRouter(ctx context.Context, cfg *config.Config) (*gin.Engine, error) {
+	const op errs.Op = "httpserver/NewGinRouter"
 	// Enable Release mode for production
 	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	// initializer gin-gonic/gin router
-	r := gin.New()
+	router := gin.New()
 
 	initMiddlewares(router, cfg)
 
 	// Init routes
-	if err := initRoutes(ctx, router, cfg, provider); err != nil {
-		return nil, err
+	if err := initRoutes(ctx, router, cfg); err != nil {
+		return nil, errs.E(op, err)
 	}
 
-	return r
+	return router, nil
 }
 
 // decoderErr is a convenience function to handle errors returned by
@@ -167,13 +180,51 @@ func decoderErr(err error) error {
 	return nil
 }
 
-func (t *task) Name() string {
-	return "httpserver"
+func initMiddlewares(router *gin.Engine, cfg *config.Config) {
+	var middlewares []gin.HandlerFunc
+
+	// Recovery middleware (recover from panic)
+	middlewares = append(middlewares, mdlwRecovery.Recovery())
+
+	// Logger middleware that skips health check endpoint
+	middlewares = append(middlewares, gin.LoggerWithFormatter(logger.HTTPLogger))
+
+	// Tracing middleware that enables tracing of requests
+	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {
+		middlewares = append(middlewares, gintrace.Middleware(cfg.App.Name))
+	}
+
+	// Secure headers middleware
+	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {
+		middlewares = append(middlewares, mdlwSecHdr.SecureHeaders)
+	}
+
+	// CORS middleware
+	middlewares = append(middlewares, mdlwCORS.CORS(cfg))
+
+	router.Use(middlewares...)
 }
 
-func (t *task) Shutdown(ctx context.Context) error {
-	if err := t.srv.Shutdown(ctx); err != nil {
-		return fmt.Errorf("failed to shutdown http server: %w", err)
-	}
+func initRoutes(
+	ctx context.Context,
+	router *gin.Engine,
+	cfg *config.Config,
+) error {
+	// Base routes
+	router.GET(apiHealthPath, healthz)
+
+	// route not found
+	router.NoRoute(func(ctx *gin.Context) {
+		logger.Error(errs.RouteNotFound.String(), logrus.Fields{})
+		errs.HTTPErrorResponse(ctx, errs.E(errs.RouteNotFound))
+	})
+
 	return nil
+}
+
+// healthz for checking service status
+func healthz(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "OK",
+	})
 }
