@@ -11,9 +11,7 @@ import (
 	"kms/internal/localtime"
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
-	"os"
 
-	"github.com/rs/zerolog"
 	"golang.org/x/text/language"
 )
 
@@ -39,46 +37,10 @@ func Run() (err error) {
 		return errs.E(op, err)
 	}
 
-	// determine minimum logging level based on flag input
-	var minlvl zerolog.Level
-	minlvl, err = zerolog.ParseLevel(cfg.Log.MinLogLevel)
-	if err != nil {
-		return errs.E(op, err)
-	}
-
-	// determine logging level based on flag input
-	var lvl zerolog.Level
-	lvl, err = zerolog.ParseLevel(cfg.Log.LogLevel)
-	if err != nil {
-		return errs.E(op, err)
-	}
-
-	// setup logger with appropriate defaults
-	lgr := logger.NewWithGCPHook(os.Stdout, minlvl, true)
-
-	// logs will be written at the level set in NewLogger (which is
-	// also the minimum level). If the logs are to be written at a
-	// different level than the minimum, use SetGlobalLevel to set
-	// the global logging level to that. Minimum rules will still
-	// apply.
-	if minlvl != lvl {
-		zerolog.SetGlobalLevel(lvl)
-	}
-
-	// set global logging time field format to Unix timestamp
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-
-	lgr.Info().Msgf("minimum accepted logging level set to %s", minlvl)
-	lgr.Info().Msgf("logging level set to %s", lvl)
-
-	// set global to log errors with stack (or not) based on flag
-	logger.LogErrorStackViaPkgErrors(cfg.Log.LogErrorStack)
-	lgr.Info().Msgf("log error stack via github.com/pkg/errors set to %t", cfg.Log.LogErrorStack)
-
 	// validate port in acceptable range
 	err = portRange(cfg.HTTPServer.Port)
 	if err != nil {
-		lgr.Fatal().Err(err).Msg("portRange() error")
+		logger.Fatal().Err(err).Msg("portRange() error")
 	}
 
 	ctx := context.Background()
@@ -95,9 +57,6 @@ func Run() (err error) {
 	// initialize HTTP Server enfolding a http.Server with default timeouts
 	// a Gorilla mux router with /api subroute and a zerolog.Logger
 	s := httpserver.New(ctx, cfg, tasks)
-
-	// set listener address
-	s.Addr = fmt.Sprintf(":%d", cfg.HTTPServer.Port)
 
 	if cfg.EncryptionKey == "" {
 		lgr.Fatal().Msg("no encryption key found")
