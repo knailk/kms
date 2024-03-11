@@ -94,7 +94,7 @@ func Run() (err error) {
 
 	// initialize HTTP Server enfolding a http.Server with default timeouts
 	// a Gorilla mux router with /api subroute and a zerolog.Logger
-	s := httpserver.New(httpserver.NewGinRouter(), httpserver.NewDriver(), tasks, lgr)
+	s := httpserver.New(httpserver.NewGinRouter(cfg), httpserver.NewDriver(), tasks, lgr)
 
 	// set listener address
 	s.Addr = fmt.Sprintf(":%d", cfg.HTTPServer.Port)

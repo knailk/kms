@@ -20,55 +20,55 @@ const (
 	PlatformAWS   = "aws"
 )
 
-// Env defines the environment
-type Env uint8
+// // Env defines the environment
+// type Env uint8
 
-const (
-	// Existing environment - current environment is not overridden
-	Existing Env = iota
-	// Local environment (Local machine)
-	Local
-	// Staging environment (GCP)
-	Staging
-	// Production environment (GCP)
-	Production
+// const (
+// 	// Existing environment - current environment is not overridden
+// 	Existing Env = iota
+// 	// Local environment (Local machine)
+// 	Local
+// 	// Staging environment (GCP)
+// 	Staging
+// 	// Production environment (GCP)
+// 	Production
 
-	// Invalid defines an invalid environment option
-	Invalid Env = 99
-)
+// 	// Invalid defines an invalid environment option
+// 	Invalid Env = 99
+// )
 
-func (e Env) String() string {
-	switch e {
-	case Existing:
-		return "existing"
-	case Local:
-		return "local"
-	case Staging:
-		return "staging"
-	case Production:
-		return "production"
-	case Invalid:
-		return "invalid"
-	}
-	return "unknown_env_config"
-}
+// func (e Env) String() string {
+// 	switch e {
+// 	case Existing:
+// 		return "existing"
+// 	case Local:
+// 		return "local"
+// 	case Staging:
+// 		return "staging"
+// 	case Production:
+// 		return "production"
+// 	case Invalid:
+// 		return "invalid"
+// 	}
+// 	return "unknown_env_config"
+// }
 
-// ParseEnv converts an env string into an Env value.
-// returns Invalid if the input string does not match known values.
-func ParseEnv(envStr string) Env {
-	switch envStr {
-	case "existing":
-		return Existing
-	case "local":
-		return Local
-	case "staging":
-		return Staging
-	case "prod":
-		return Production
-	default:
-		return Invalid
-	}
-}
+// // ParseEnv converts an env string into an Env value.
+// // returns Invalid if the input string does not match known values.
+// func ParseEnv(envStr string) Env {
+// 	switch envStr {
+// 	case "existing":
+// 		return Existing
+// 	case "local":
+// 		return Local
+// 	case "staging":
+// 		return Staging
+// 	case "prod":
+// 		return Production
+// 	default:
+// 		return Invalid
+// 	}
+// }
 
 // Config defines the configuration file. It is the superset of
 // fields for the various environments/builds.
