@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"kms/pkg/logger"
 	"net/http"
 
-	"github.com/rs/zerolog"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // ErrResponse is used as the Response Body
@@ -23,17 +25,16 @@ type ServiceError struct {
 	Message string `json:"message,omitempty"`
 }
 
-// HTTPErrorResponse takes a writer, error and a logger, performs a
+// HTTPErrorResponse takes a context from gin adn error, performs a
 // type switch to determine if the type is an Error (which meets
 // the Error interface as defined in this package), then sends the
 // Error as a response to the client. If the type does not meet the
 // Error interface as defined in this package, then a proper error
 // is still formed and sent to the client, however, the Kind and
 // Code will be Unanticipated. Logging of error is also done using
-// https://github.com/rs/zerolog
-func HTTPErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, err error) {
+func HTTPErrorResponse(ctx *gin.Context, err error) {
 	if err == nil {
-		nilErrorResponse(w, lgr)
+		nilErrorResponse(ctx)
 		return
 	}
 
@@ -41,18 +42,18 @@ func HTTPErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, err error) {
 	if errors.As(err, &e) {
 		switch e.Kind {
 		case Unauthenticated:
-			unauthenticatedErrorResponse(w, lgr, e)
+			unauthenticatedErrorResponse(ctx, e)
 			return
 		case Unauthorized:
-			unauthorizedErrorResponse(w, lgr, e)
+			unauthorizedErrorResponse(ctx, e)
 			return
 		default:
-			typicalErrorResponse(w, lgr, e)
+			typicalErrorResponse(ctx, e)
 			return
 		}
 	}
 
-	unknownErrorResponse(w, lgr, err)
+	unknownErrorResponse(ctx, err)
 }
 
 // typicalErrorResponse replies to the request with the specified error
@@ -61,7 +62,7 @@ func HTTPErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, err error) {
 //
 // Taken from standard library and modified.
 // https://golang.org/pkg/net/http/#Error
-func typicalErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, e *Error) {
+func typicalErrorResponse(ctx *gin.Context, e *Error) {
 	const op Op = "errs/typicalErrorResponse"
 
 	httpStatusCode := httpErrorStatusCode(e.Kind)
@@ -71,45 +72,35 @@ func typicalErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, e *Error) {
 	// Status Code as response. Error should not be empty, but it's
 	// theoretically possible, so this is just in case...
 	if e.isZero() {
-		lgr.Error().Stack().Msgf("error sent to %s, but empty - very strange, investigate", op)
-		w.WriteHeader(http.StatusInternalServerError)
+		logger.Error(fmt.Sprintf("error sent to %s, but empty - very strange, investigate", op), logrus.Fields{})
+		ctx.Status(http.StatusInternalServerError)
 		return
 	}
 
 	// typical errors
 	const errMsg = "error response sent to client"
 
-	if zerolog.ErrorStackMarshaler != nil {
-		err := TopError(e)
-
-		// log the error with stacktrace from "github.com/pkg/errors"
-		// do not bother to log with op stack
-		lgr.Error().Stack().Err(err).
-			Int("http_statuscode", httpStatusCode).
-			Str("Kind", e.Kind.String()).
-			Str("Parameter", string(e.Param)).
-			Str("Code", string(e.Code)).
-			Msg(errMsg)
+	ops := OpStack(e)
+	if len(ops) > 0 {
+		j, _ := json.Marshal(ops)
+		// log the error with the op stack
+		logger.Error(errMsg, logrus.Fields{
+			"HTTPStatusCode": httpStatusCode,
+			"Kind":           e.Kind.String(),
+			"Stack":          string(j),
+			"Parameter":      string(e.Param),
+			"Error":          e.Err.Error(),
+			"Code":           string(e.Code),
+		})
 	} else {
-		ops := OpStack(e)
-		if len(ops) > 0 {
-			j, _ := json.Marshal(ops)
-			// log the error with the op stack
-			lgr.Error().RawJSON("stack", j).Err(e.Err).
-				Int("http_statuscode", httpStatusCode).
-				Str("Kind", e.Kind.String()).
-				Str("Parameter", string(e.Param)).
-				Str("Code", string(e.Code)).
-				Msg(errMsg)
-		} else {
-			// no op stack present, log the error without that field
-			lgr.Error().Err(e.Err).
-				Int("http_statuscode", httpStatusCode).
-				Str("Kind", e.Kind.String()).
-				Str("Parameter", string(e.Param)).
-				Str("Code", string(e.Code)).
-				Msg(errMsg)
-		}
+		// no op stack present, log the error without that field
+		logger.Error(errMsg, logrus.Fields{
+			"HTTPStatusCode": httpStatusCode,
+			"Kind":           e.Kind.String(),
+			"Parameter":      string(e.Param),
+			"Error":          e.Err.Error(),
+			"Code":           string(e.Code),
+		})
 	}
 
 	// get ErrResponse
@@ -120,13 +111,11 @@ func typicalErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, e *Error) {
 	ej := string(errJSON)
 
 	// Write Content-Type headers
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	// Write HTTP Statuscode
-	w.WriteHeader(httpStatusCode)
+	ctx.Header("Content-Type", "application/json")
+	ctx.Header("X-Content-Type-Options", "nosniff")
 
-	// Write response body (json)
-	fmt.Fprintln(w, ej)
+	// Write  HTTP StatusCode and response body (json)
+	ctx.JSON(httpStatusCode, ej)
 }
 
 func newErrResponse(err *Error) ErrResponse {
@@ -155,86 +144,75 @@ func newErrResponse(err *Error) ErrResponse {
 // unauthenticatedErrorResponse responds with http status code 401
 // (Unauthorized / Unauthenticated), an empty response body and a
 // WWW-Authenticate header.
-func unauthenticatedErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, e *Error) {
+func unauthenticatedErrorResponse(ctx *gin.Context, e *Error) {
 	if e.Realm == "" {
 		e.Realm = "default"
 	}
 
-	if zerolog.ErrorStackMarshaler != nil {
-		err := TopError(e)
-
-		// log the error with stacktrace from "github.com/pkg/errors"
-		// do not bother to log with op stack
-		lgr.Error().Stack().Err(err).
-			Int("http_statuscode", http.StatusUnauthorized).
-			Str("realm", string(e.Realm)).
-			Msg("Unauthenticated Request")
+	ops := OpStack(e)
+	if len(ops) > 0 {
+		j, _ := json.Marshal(ops)
+		// log the error with the op stack
+		logger.Error("unauthenticatedErrorResponse", logrus.Fields{
+			"HTTPStatusCode": http.StatusUnauthorized,
+			"Message":        "Unauthenticated Request",
+			"Stack":          string(j),
+			"Error":          e.Err.Error(),
+		})
 	} else {
-		ops := OpStack(e)
-		if len(ops) > 0 {
-			j, _ := json.Marshal(ops)
-			// log the error with the op stack
-			lgr.Error().RawJSON("stack", j).Err(e.Err).
-				Int("http_statuscode", http.StatusUnauthorized).
-				Str("realm", string(e.Realm)).
-				Msg("Unauthenticated Request")
-		} else {
-			// no op stack present, log the error without that field
-			lgr.Error().Err(e.Err).
-				Int("http_statuscode", http.StatusUnauthorized).
-				Str("realm", string(e.Realm)).
-				Msg("Unauthenticated Request")
-		}
+		// no op stack present, log the error without that field
+		logger.Error("unauthenticatedErrorResponse", logrus.Fields{
+			"HTTPStatusCode": http.StatusUnauthorized,
+			"Message":        "Unauthenticated Request",
+			"Realm":          string(e.Realm),
+			"Error":          e.Err.Error(),
+		})
 	}
 
-	w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, e.Realm))
-	w.WriteHeader(http.StatusUnauthorized)
+	ctx.Header("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, e.Realm))
+	ctx.Status(http.StatusUnauthorized)
 }
 
 // unauthorizedErrorResponse responds with http status code 403 (Forbidden)
 // and an empty response body.
-func unauthorizedErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, e *Error) {
+func unauthorizedErrorResponse(ctx *gin.Context, e *Error) {
 
-	if zerolog.ErrorStackMarshaler != nil {
-		err := TopError(e)
-
-		// log the error with stacktrace from "github.com/pkg/errors"
-		// do not bother to log with op stack
-		lgr.Error().Stack().Err(err).
-			Int("http_statuscode", http.StatusForbidden).
-			Msg("Unauthorized Request")
+	ops := OpStack(e)
+	if len(ops) > 0 {
+		j, _ := json.Marshal(ops)
+		// log the error with the op stack
+		logger.Error("unauthorizedErrorResponse", logrus.Fields{
+			"HTTPStatusCode": http.StatusForbidden,
+			"Message":        "Unauthorized Request",
+			"Stack":          string(j),
+			"Error":          e.Err.Error(),
+		})
 	} else {
-		ops := OpStack(e)
-		if len(ops) > 0 {
-			j, _ := json.Marshal(ops)
-			// log the error with the op stack
-			lgr.Error().RawJSON("stack", j).Err(e.Err).
-				Int("http_statuscode", http.StatusForbidden).
-				Msg("Unauthorized Request")
-		} else {
-			// no op stack present, log the error without that field
-			lgr.Error().Err(e.Err).
-				Int("http_statuscode", http.StatusForbidden).
-				Msg("Unauthorized Request")
-		}
+		// no op stack present, log the error without that field
+		logger.Error("unauthorizedErrorResponse", logrus.Fields{
+			"HTTPStatusCode": http.StatusForbidden,
+			"Message":        "Unauthorized Request",
+			"Error":          e.Err.Error(),
+		})
 	}
 
-	w.WriteHeader(http.StatusForbidden)
+	ctx.Status(http.StatusForbidden)
 }
 
 // nilErrorResponse responds with http status code 500 (Internal Server Error)
 // and an empty response body. nil error should never be sent, but in case it is...
-func nilErrorResponse(w http.ResponseWriter, lgr zerolog.Logger) {
-	lgr.Error().Stack().
-		Int("HTTP Error StatusCode", http.StatusInternalServerError).
-		Msg("nil error - no response body sent")
+func nilErrorResponse(ctx *gin.Context) {
+	logger.Error("nilErrorResponse", logrus.Fields{
+		"HTTPStatusCode": http.StatusInternalServerError,
+		"Message":        "nil error - no response body sent",
+	})
 
-	w.WriteHeader(http.StatusInternalServerError)
+	ctx.Status(http.StatusInternalServerError)
 }
 
 // unknownErrorResponse responds with http status code 500 (Internal Server Error)
 // and a json response body with unanticipated_error kind
-func unknownErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, err error) {
+func unknownErrorResponse(ctx *gin.Context, err error) {
 	er := ErrResponse{
 		Error: ServiceError{
 			Kind:    Unanticipated.String(),
@@ -243,20 +221,18 @@ func unknownErrorResponse(w http.ResponseWriter, lgr zerolog.Logger, err error) 
 		},
 	}
 
-	lgr.Error().Err(err).Msg("Unknown Error")
+	logger.Error("Unknown Error", logrus.Fields{"Error": err.Error()})
 
 	// Marshal errResponse struct to JSON for the response body
 	errJSON, _ := json.Marshal(er)
 	ej := string(errJSON)
 
 	// Write Content-Type headers
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	// Write HTTP Statuscode
-	w.WriteHeader(http.StatusInternalServerError)
+	ctx.Header("Content-Type", "application/json")
+	ctx.Header("X-Content-Type-Options", "nosniff")
 
-	// Write response body (json)
-	fmt.Fprintln(w, ej)
+	// Write HTTP Statuscode and response body (json)
+	ctx.JSON(http.StatusInternalServerError, ej)
 }
 
 // httpErrorStatusCode maps an error Kind to an HTTP Status Code

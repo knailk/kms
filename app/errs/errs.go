@@ -12,7 +12,6 @@ package errs
 import (
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog"
 	"runtime"
 	"sort"
 
@@ -153,6 +152,8 @@ const (
 	// For Unauthorized errors, the response body should be empty.
 	// The error is logged and http.StatusForbidden (403) is sent.
 	Unauthorized
+
+	RouteNotFound // Route not found
 )
 
 func (k Kind) String() string {
@@ -185,6 +186,8 @@ func (k Kind) String() string {
 		return "unauthenticated request"
 	case Unauthorized:
 		return "unauthorized request"
+	case RouteNotFound:
+		return "route not found"
 	}
 	return "unknown error kind"
 }
@@ -230,29 +233,13 @@ func E(args ...interface{}) error {
 		case Kind:
 			e.Kind = arg
 		case string:
-			if zerolog.ErrorStackMarshaler != nil {
-				e.Err = pkgerrors.New(arg)
-			} else {
-				e.Err = Str(arg)
-			}
+			e.Err = Str(arg)
 		case *Error:
 			// Make a copy
 			errorCopy := *arg
 			e.Err = &errorCopy
 		case error:
-			if zerolog.ErrorStackMarshaler != nil {
-				// if the error implements stackTracer, then it is
-				// a pkg/errors error type and does not need to have
-				// the stack added
-				_, ok := arg.(stackTracer)
-				if ok {
-					e.Err = arg
-				} else {
-					e.Err = pkgerrors.New(arg.Error())
-				}
-			} else {
-				e.Err = arg
-			}
+			e.Err = arg
 		case Code:
 			e.Code = arg
 		case Parameter:
