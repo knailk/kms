@@ -3,9 +3,11 @@ package httpserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"kms/app/config"
@@ -14,7 +16,6 @@ import (
 	mdlwRecovery "kms/app/middleware/recovery"
 	mdlwSecHdr "kms/app/middleware/secureheaders"
 	"kms/app/service"
-	"kms/internal/httpserver/driver"
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
 
@@ -25,7 +26,7 @@ import (
 
 const (
 	apiHealthPath = "/"
-	pathPrefix    = "/api"
+	apiV1         = "/api/v1"
 )
 
 // Services are used by the application service handlers
@@ -40,21 +41,6 @@ type Services struct {
 	PermissionServicer     service.PermissionServicer
 	RoleServicer           service.RoleServicer
 	MovieServicer          service.MovieServicer
-}
-
-// Server represents an HTTP server.
-type Server struct {
-	router *gin.Engine
-	Driver driver.Server
-
-	// Addr optionally specifies the TCP address for the server to listen on,
-	// in the form "host:port". If empty, ":http" (port 80) is used.
-	// The service names are defined in RFC 6335 and assigned by IANA.
-	// See net.Dial for details of the address format.
-	Addr string
-
-	// Services used by the various HTTP routes and middleware.
-	Services
 }
 
 type task struct {
@@ -74,71 +60,35 @@ func (t *task) Shutdown(ctx context.Context) error {
 
 // New initializes a new Server and registers
 // routes to the given router
-func New(engine *gin.Engine, serverDriver driver.Server, tasks *shutdown.Tasks) *Server {
+func New(ctx context.Context, cfg *config.Config, tasks *shutdown.Tasks) error {
 	if tasks.HasStopSignal() {
 		return nil
 	}
-	s := &Server{router: engine}
-	s.Driver = serverDriver
 
-	// register routes to the router
-	s.registerRoutes()
+	engine := NewGinRouter(ctx, cfg)
 
-	return s
-}
-
-// ListenAndServe is a wrapper to use wherever http.ListenAndServe is used.
-func (s *Server) ListenAndServe() error {
-	const op errs.Op = "server/Server.ListenAndServe"
-	if s.Addr == "" {
-		return errs.E(op, errs.Internal, "Server Addr is empty")
-	}
-	if s.router == nil {
-		return errs.E(op, errs.Internal, "Server router is nil")
-	}
-	if s.Driver == nil {
-		return errs.E(op, errs.Internal, "Server driver is nil")
-	}
-	return s.Driver.ListenAndServe(s.Addr, s.router)
-}
-
-// Shutdown gracefully shuts down the server without interrupting any active connections.
-func (s *Server) Shutdown(ctx context.Context) error {
-	return s.Driver.Shutdown(ctx)
-}
-
-// Driver implements the driver.Server interface. The zero value is a valid http.Server.
-type Driver struct {
-	Server http.Server
-}
-
-// NewDriver creates a Driver enfolding a http.Server with default timeouts.
-func NewDriver() *Driver {
-	return &Driver{
-		Server: http.Server{
-			ReadTimeout:  30 * time.Second,
-			WriteTimeout: 30 * time.Second,
-			IdleTimeout:  120 * time.Second,
+	t := &task{
+		srv: &http.Server{
+			Addr:              fmt.Sprintf(":%d", cfg.HTTPServer.Port),
+			Handler:           engine,
+			ReadHeaderTimeout: 10 * time.Second,
 		},
 	}
-}
 
-// ListenAndServe sets the address and handler on Driver's http.Server,
-// then calls ListenAndServe on it.
-func (d *Driver) ListenAndServe(addr string, h http.Handler) error {
-	d.Server.Addr = addr
-	d.Server.Handler = h
-	return d.Server.ListenAndServe()
-}
+	go func() {
+		if err := t.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error(err.Error(), logrus.Fields{"Message": "HTTP server ListenAndServe failed"})
+			tasks.GetSigChan() <- os.Interrupt
+		}
+	}()
 
-// Shutdown gracefully shuts down the server without interrupting any active connections,
-// by calling Shutdown on Driver's http.Server
-func (d *Driver) Shutdown(ctx context.Context) error {
-	return d.Server.Shutdown(ctx)
+	// Add shutdown task
+	tasks.Add(t)
+	return nil
 }
 
 // NewGinRouter initializes a gin-gonic/gin router
-func NewGinRouter(ctx context.Context, cfg *config.Config) (*gin.Engine, error) {
+func NewGinRouter(ctx context.Context, cfg *config.Config) *gin.Engine {
 	const op errs.Op = "httpserver/NewGinRouter"
 	// Enable Release mode for production
 	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {
@@ -151,11 +101,9 @@ func NewGinRouter(ctx context.Context, cfg *config.Config) (*gin.Engine, error) 
 	initMiddlewares(router, cfg)
 
 	// Init routes
-	if err := initRoutes(ctx, router, cfg); err != nil {
-		return nil, errs.E(op, err)
-	}
+	initRoutes(ctx, router, cfg)
 
-	return router, nil
+	return router
 }
 
 // decoderErr is a convenience function to handle errors returned by
@@ -209,7 +157,7 @@ func initRoutes(
 	ctx context.Context,
 	router *gin.Engine,
 	cfg *config.Config,
-) error {
+) {
 	// Base routes
 	router.GET(apiHealthPath, healthz)
 
@@ -219,7 +167,7 @@ func initRoutes(
 		errs.HTTPErrorResponse(ctx, errs.E(errs.RouteNotFound))
 	})
 
-	return nil
+	return
 }
 
 // healthz for checking service status
