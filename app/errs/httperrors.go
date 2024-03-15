@@ -72,7 +72,7 @@ func typicalErrorResponse(ctx *gin.Context, e *Error) {
 	// Status Code as response. Error should not be empty, but it's
 	// theoretically possible, so this is just in case...
 	if e.isZero() {
-		logger.Error(fmt.Sprintf("error sent to %s, but empty - very strange, investigate", op), logrus.Fields{})
+		logger.ErrorF(fmt.Sprintf("error sent to %s, but empty - very strange, investigate", op), logrus.Fields{})
 		ctx.Status(http.StatusInternalServerError)
 		return
 	}
@@ -84,7 +84,7 @@ func typicalErrorResponse(ctx *gin.Context, e *Error) {
 	if len(ops) > 0 {
 		j, _ := json.Marshal(ops)
 		// log the error with the op stack
-		logger.Error(errMsg, logrus.Fields{
+		logger.ErrorF(errMsg, logrus.Fields{
 			"HTTPStatusCode": httpStatusCode,
 			"Kind":           e.Kind.String(),
 			"Stack":          string(j),
@@ -94,7 +94,7 @@ func typicalErrorResponse(ctx *gin.Context, e *Error) {
 		})
 	} else {
 		// no op stack present, log the error without that field
-		logger.Error(errMsg, logrus.Fields{
+		logger.ErrorF(errMsg, logrus.Fields{
 			"HTTPStatusCode": httpStatusCode,
 			"Kind":           e.Kind.String(),
 			"Parameter":      string(e.Param),
@@ -153,7 +153,7 @@ func unauthenticatedErrorResponse(ctx *gin.Context, e *Error) {
 	if len(ops) > 0 {
 		j, _ := json.Marshal(ops)
 		// log the error with the op stack
-		logger.Error("unauthenticatedErrorResponse", logrus.Fields{
+		logger.ErrorF("unauthenticatedErrorResponse", logrus.Fields{
 			"HTTPStatusCode": http.StatusUnauthorized,
 			"Message":        "Unauthenticated Request",
 			"Stack":          string(j),
@@ -161,7 +161,7 @@ func unauthenticatedErrorResponse(ctx *gin.Context, e *Error) {
 		})
 	} else {
 		// no op stack present, log the error without that field
-		logger.Error("unauthenticatedErrorResponse", logrus.Fields{
+		logger.ErrorF("unauthenticatedErrorResponse", logrus.Fields{
 			"HTTPStatusCode": http.StatusUnauthorized,
 			"Message":        "Unauthenticated Request",
 			"Realm":          string(e.Realm),
@@ -181,7 +181,7 @@ func unauthorizedErrorResponse(ctx *gin.Context, e *Error) {
 	if len(ops) > 0 {
 		j, _ := json.Marshal(ops)
 		// log the error with the op stack
-		logger.Error("unauthorizedErrorResponse", logrus.Fields{
+		logger.ErrorF("unauthorizedErrorResponse", logrus.Fields{
 			"HTTPStatusCode": http.StatusForbidden,
 			"Message":        "Unauthorized Request",
 			"Stack":          string(j),
@@ -189,7 +189,7 @@ func unauthorizedErrorResponse(ctx *gin.Context, e *Error) {
 		})
 	} else {
 		// no op stack present, log the error without that field
-		logger.Error("unauthorizedErrorResponse", logrus.Fields{
+		logger.ErrorF("unauthorizedErrorResponse", logrus.Fields{
 			"HTTPStatusCode": http.StatusForbidden,
 			"Message":        "Unauthorized Request",
 			"Error":          e.Err.Error(),
@@ -202,7 +202,7 @@ func unauthorizedErrorResponse(ctx *gin.Context, e *Error) {
 // nilErrorResponse responds with http status code 500 (Internal Server Error)
 // and an empty response body. nil error should never be sent, but in case it is...
 func nilErrorResponse(ctx *gin.Context) {
-	logger.Error("nilErrorResponse", logrus.Fields{
+	logger.ErrorF("nilErrorResponse", logrus.Fields{
 		"HTTPStatusCode": http.StatusInternalServerError,
 		"Message":        "nil error - no response body sent",
 	})
@@ -221,7 +221,7 @@ func unknownErrorResponse(ctx *gin.Context, err error) {
 		},
 	}
 
-	logger.Error("Unknown Error", logrus.Fields{"Error": err.Error()})
+	logger.ErrorF("Unknown Error", logrus.Fields{"Error": err.Error()})
 
 	// Marshal errResponse struct to JSON for the response body
 	errJSON, _ := json.Marshal(er)
