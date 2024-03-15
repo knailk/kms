@@ -166,6 +166,7 @@ type BasicAuthCnf struct {
 
 type JWTCnf struct {
 	Secret          string `yaml:"secret" env:"SESSION_JWT_SECRET" default:"dummy_for_local"`
+	Issuer          string `yaml:"issuer" env:"ISSUER" default:"kms"`
 	AccessTokenExp  int64  `yaml:"accessTokenExp" env:"SESSION_JWT_ACCESS_TOKEN_EXP" default:"14400"`
 	RefreshTokenExp int64  `yaml:"refreshTokenExp" env:"SESSION_JWT_REFRESH_TOKEN_EXP" default:"86400"`
 }

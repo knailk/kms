@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"kms/app/errs"
+	"kms/app/external/infra/database"
+	"kms/internal/shutdown"
+	"kms/pkg/logger"
 	"net/url"
 	"strconv"
 
-	"github.com/golang-migrate/migrate/v4/database"
-	"github.com/rs/zerolog"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -115,24 +117,30 @@ func (dsn PostgreSQLDSN) KeywordValueConnectionString() string {
 
 // NewPostgreSQLPool creates a new db pool and establishes a connection.
 // In addition, returns a Close function to defer closing the pool.
-func NewPostgreSQLPool(ctx context.Context, lgr zerolog.Logger, dsn PostgreSQLDSN) (*gorm.DB, error) {
+func NewPostgreSQLPool(ctx context.Context, dsn PostgreSQLDSN, tasks *shutdown.Tasks) (*gorm.DB, error) {
 	const op errs.Op = "sqldb/NewPostgreSQLPool"
 
-	// Open the postgres database using the postgres driver (pq)
-	// func Open(dataSourceName string) (*DB, error)
-	dbClient, err := database.Open(dsn)
-	if err != nil {
-		return nil, err
+	if tasks.HasStopSignal() {
+		return nil, errs.E(op, shutdown.ErrAbortedAsGotStopSignal)
 	}
 
-	lgr.Info().Msgf("sql database opened for %s on port %d", dsn.Host, dsn.Port)
+	cnn := dsn.KeywordValueConnectionString()
+
+	// Open the postgres database
+	// func Open(dataSourceName string) (*DB, error)
+	dbClient, err := database.Open(cnn)
+	if err != nil {
+		return nil, errs.E(op, err)
+	}
+
+	logger.InfoFF("sql database opened for %s on port %d", logrus.Fields{}, dsn.Host, dsn.Port)
 
 	sqlDB, err := dbClient.DB()
 	if err != nil {
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 	if err := sqlDB.Ping(); err != nil {
-		return nil, err
+		return nil, errs.E(op, err)
 	}
 
 	return dbClient, nil
