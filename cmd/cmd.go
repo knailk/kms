@@ -4,13 +4,18 @@ import (
 	"context"
 	"fmt"
 	"kms/app/errs"
+	"kms/app/registry"
 	"kms/app/secure"
 	"kms/database/sqldb"
 	"kms/internal/config"
 	"kms/internal/httpserver"
+	"kms/internal/jwt"
 	"kms/internal/localtime"
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
+	"kms/pkg/mailer"
+
+	"kms/internal/cache"
 
 	"golang.org/x/text/language"
 )
@@ -37,10 +42,12 @@ func Run() (err error) {
 		return errs.E(op, err)
 	}
 
+	provider := &registry.Provider{Config: cfg}
+
 	// validate port in acceptable range
 	err = portRange(cfg.HTTPServer.Port)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("portRange() error")
+		logger.Fatal("portRange() error: ", err)
 	}
 
 	ctx := context.Background()
@@ -50,68 +57,39 @@ func Run() (err error) {
 
 	err = localtime.Init()
 	if err != nil {
-		lgr.Error().Err(err).Msgf("initialize timezone")
+		logger.Error("initialize timezone error: ", err)
 		return
 	}
 
-	// initialize HTTP Server enfolding a http.Server with default timeouts
-	// a Gorilla mux router with /api subroute and a zerolog.Logger
-	s := httpserver.New(ctx, cfg, tasks)
-
-	if cfg.EncryptionKey == "" {
-		lgr.Fatal().Msg("no encryption key found")
-	}
-
-	// decode and retrieve encryption key
-	var ek *[32]byte
-	ek, err = secure.ParseEncryptionKey(cfg.EncryptionKey)
+	// init jwt service
+	err = jwt.InitJWTService(ctx, tasks, cfg)
 	if err != nil {
-		lgr.Fatal().Err(err).Msg("secure.ParseEncryptionKey() error")
+		return errs.E(op, err)
 	}
+
+	// cache
+	provider.RedisClient, err = cache.InitRedis(ctx, tasks, cfg)
+	if err != nil {
+		return errs.E(op, err)
+	}
+	provider.RistrettoClient, err = cache.InitRistretto(ctx, tasks)
+	if err != nil {
+		return errs.E(op, err)
+	}
+
+	// mailer
+	provider.MailClient = mailer.NewOTPMailer("config.AppConfig.OTPEmail", "config.AppConfig.OTPPassword")
 
 	// initialize PostgreSQL database
-	db, err := sqldb.NewPostgreSQLPool(ctx, lgr, config.NewPostgreSQLDSN(cfg))
+	provider.DB, err = sqldb.NewPostgreSQLPool(ctx, config.NewPostgreSQLDSN(cfg), tasks)
 	if err != nil {
-		lgr.Fatal().Err(err).Msg("sqldb.NewPostgreSQLPool error")
+		logger.Fatal("sqldb.NewPostgreSQLPool error: ", err)
 	}
 
-	var supportedLangs = []language.Tag{
-		language.AmericanEnglish,
-	}
+	// initialize HTTP Server enfolding a http.Server with default timeouts, a Gin router with /api subroute
+	httpserver.Init(ctx, cfg, tasks, provider)
 
-	matcher := language.NewMatcher(supportedLangs)
-
-	s.Services = httpserver.Services{
-		OrgServicer: &service.OrgService{
-			Datastorer:      db,
-			APIKeyGenerator: secure.RandomGenerator{},
-			EncryptionKey:   ek},
-		AppServicer: &service.AppService{
-			Datastorer:      db,
-			APIKeyGenerator: secure.RandomGenerator{},
-			EncryptionKey:   ek},
-		PingService:   &service.PingService{Datastorer: db},
-		LoggerService: &service.LoggerService{Logger: lgr},
-		GenesisServicer: &service.GenesisService{
-			Datastorer:      db,
-			APIKeyGenerator: secure.RandomGenerator{},
-			EncryptionKey:   ek,
-			TokenExchanger:  gateway.Oauth2TokenExchange{},
-			LanguageMatcher: matcher,
-		},
-		AuthenticationServicer: service.DBAuthenticationService{
-			Datastorer:      db,
-			TokenExchanger:  gateway.Oauth2TokenExchange{},
-			EncryptionKey:   ek,
-			LanguageMatcher: matcher,
-		},
-		AuthorizationServicer: &service.DBAuthorizationService{Datastorer: db},
-		PermissionServicer:    &service.PermissionService{Datastorer: db},
-		RoleServicer:          &service.RoleService{Datastorer: db},
-		MovieServicer:         &service.MovieService{Datastorer: db},
-	}
-
-	return s.ListenAndServe()
+	tasks.WaitForServerStop(ctx)
 }
 
 // portRange validates the port be in an acceptable range
