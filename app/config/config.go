@@ -86,7 +86,7 @@ type Config struct {
 type AppCnf struct {
 	Name             string `yaml:"name" env:"APP_NAME" default:"appname"`
 	Version          string `yaml:"version" env:"APP_VERSION"`
-	ProfilingEnabled bool   `yaml:"profiling_enabled" env:"APP_PROFILING_ENABLED" default:"false"`
+	ProfilingEnabled bool   `yaml:"profilingEnabled" env:"APP_PROFILING_ENABLED" default:"false"`
 }
 
 type LoggerCnf struct {
@@ -104,12 +104,12 @@ type DBPostgresCnf struct {
 
 type CacheCnf struct {
 	URL          string `yaml:"url" env:"CACHE_URL"`
-	PoolSize     int    `yaml:"pool_size" env:"CACHE_POOL_SIZE" default:"10"`
-	IdleTimeout  int    `yaml:"idle_timeout" env:"CACHE_IDLE_TIMEOUT"`
-	ReadTimeout  int    `yaml:"read_timeout" env:"CACHE_READ_TIMEOUT"`
-	WriteTimeout int    `yaml:"write_timeout" env:"CACHE_WRITE_TIMEOUT"`
-	MinIdleConns int    `yaml:"min_idle_conns" env:"CACHE_MIN_IDLE_CONNS"`
-	UseTLS       bool   `yaml:"use_tls" env:"CACHE_USE_TLS" default:"false"`
+	PoolSize     int    `yaml:"poolSize" env:"CACHE_POOL_SIZE" default:"10"`
+	IdleTimeout  int    `yaml:"idleTimeout" env:"CACHE_IDLE_TIMEOUT"`
+	ReadTimeout  int    `yaml:"readTimeout" env:"CACHE_READ_TIMEOUT"`
+	WriteTimeout int    `yaml:"writeTimeout" env:"CACHE_WRITE_TIMEOUT"`
+	MinIdleConns int    `yaml:"minIdleConns" env:"CACHE_MIN_IDLE_CONNS"`
+	UseTLS       bool   `yaml:"useTSL" env:"CACHE_USE_TLS" default:"false"`
 }
 
 type SessionCnf struct {

@@ -3,33 +3,33 @@ platform: local
 app:
   name: kms
   version: 0.1
-  profiling_enabled: false
+  profilingEnabled: false
 logger:
-  "logLevel": "debug",
+  logLevel: debug
 db:
   host: localhost
   user: admin
   password: ndtd1234
-  dbName: develop
-  port: 5432
+  dbName: local
+  port: 7432
   searchPath: demo
 
 cache:
   url: redis://default:1234@localhost:16379/0
-  pool_size: 10
-  use_tls: false
+  poolSize: 10
+  useTSL: false
       
 session:
-  basic_auth:
+  basicAuth:
     username: admin
     password: ndtd1234
   jwt:
     secret: local
-    access_token_exp: 14400
-    refresh_token_exp: 86400
+    accessTokenExp: 14400
+    refreshTokenExp: 86400
 
 httpServer:
   port: 8080
   cors:
-    allow_origins:
+    allowOrigins:
       - http://localhost:3000 

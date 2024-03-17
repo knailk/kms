@@ -13,7 +13,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
@@ -30,7 +29,7 @@ const (
 )
 
 // NewGinRouter initializes a gin-gonic/gin router
-func NewGinRouter(ctx context.Context, cfg *config.Config, tasks *shutdown.Tasks, provider *registry.Provider) *gin.Engine  {
+func NewGinRouter(ctx context.Context, cfg *config.Config, tasks *shutdown.Tasks, provider *registry.Provider) *gin.Engine {
 	// Enable Release mode for production
 	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {
 		gin.SetMode(gin.ReleaseMode)
@@ -83,7 +82,7 @@ func initRoutes(
 
 	// route not found
 	router.NoRoute(func(ctx *gin.Context) {
-		logger.ErrorF(errs.RouteNotFound.String(), logrus.Fields{})
+		logger.Error(errs.RouteNotFound.String())
 		errs.HTTPErrorResponse(ctx, errs.E(errs.RouteNotFound))
 	})
 
