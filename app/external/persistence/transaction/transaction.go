@@ -1,31 +1,35 @@
+// Package use sql transaction, but in this project, we use gorm gen,
+// a Friendly & Safer GORM powered by Code Generation. It already
+// implements the transaction
 package transaction
 
 import (
 	"context"
+	"kms/database/sqldb"
 
 	"gorm.io/gorm"
 )
 
-// DB is a concrete implementation for a PostgreSQL database
-type DB struct {
+// dbService is a concrete implementation for a PostgreSQL database
+type dbService struct {
 	DB     *gorm.DB
 	isDone bool
 }
 
 // NewDB is an initializer for the DB struct
-func NewDB(db *gorm.DB) *DB {
-	return &DB{DB: db, isDone: false}
+func NewDB(db *gorm.DB) sqldb.Datastorer {
+	return &dbService{DB: db, isDone: false}
 }
 
 // BeginTx returns an acquired transaction from the db pool and
 // adds app specific error handling
-func (db *DB) BeginTx() {
+func (db *dbService) BeginTx() {
 	db.DB = db.DB.Begin()
 }
 
 // RollbackTx is a wrapper for sql.Tx.Rollback in order to expose from
 // the Datastore interface. Proper error handling is also considered.
-func (db *DB) RollbackTx() {
+func (db *dbService) RollbackTx() {
 	if !db.isDone {
 		db.DB.Rollback()
 		db.isDone = true
@@ -34,7 +38,7 @@ func (db *DB) RollbackTx() {
 
 // CommitTx is a wrapper for sql.Tx.Commit in order to expose from
 // the Datastore interface. Proper error handling is also considered.
-func (db *DB) CommitTx() (err error) {
+func (db *dbService) CommitTx() (err error) {
 	if !db.isDone {
 		err = db.DB.Commit().Error
 		db.isDone = true
@@ -43,12 +47,12 @@ func (db *DB) CommitTx() (err error) {
 }
 
 // GetTx to get the current transaction of this service
-func (db *DB) GetTx() interface{} {
+func (db *dbService) GetTx() interface{} {
 	return db.DB
 }
 
 // RecoverTx to recover & roll back transaction of this service
-func (db *DB) RecoverTx() {
+func (db *dbService) RecoverTx() {
 	if p := recover(); p != nil {
 		db.RollbackTx()
 		// propagate panic info for caller
@@ -57,7 +61,7 @@ func (db *DB) RecoverTx() {
 }
 
 // EndTx to end (commit or rollback) the current transaction of this service
-func (db *DB) EndTx(err error) error {
+func (db *dbService) EndTx(err error) error {
 	if err != nil {
 		db.RollbackTx()
 	} else {
@@ -71,10 +75,10 @@ func (db *DB) EndTx(err error) error {
 
 // ContextKeyRepoTX define key send through context
 const (
-	ContextKeyRepoTX = "context_key_repo_tx"
+	ContextKeyRepoTX string = "context_key_repo_tx"
 )
 
 // AssignToContext assign transaction to context
-func (db *DB) AssignToContext(parentCtx context.Context) context.Context {
+func (db *dbService) AssignToContext(parentCtx context.Context) context.Context {
 	return context.WithValue(parentCtx, ContextKeyRepoTX, db.GetTx())
 }

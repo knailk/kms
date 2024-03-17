@@ -78,15 +78,9 @@ type Config struct {
 	App                 AppCnf        `yaml:"app"`
 	Log                 LoggerCnf     `yaml:"logger"`
 	DB                  DBPostgresCnf `yaml:"db"`
-	EncryptionKey       string        `yaml:"encryptionKey" env:"ENCRYPTION_KEY"`
-	GCP                 GCPCnf        `yaml:"gcp"`
 	Cache               CacheCnf      `yaml:"cache"`
 	Session             SessionCnf    `yaml:"session"`
-	Email               EmailCnf      `yaml:"email"`
-	WebSocket           WebSocketCnf  `yaml:"websocket"`
-	WebHook             WebhookCnf    `yaml:"webhook"`
 	HTTPServer          HTTPServerCnf `yaml:"httpServer"`
-	BusinessAdminEmails []string      `yaml:"business_admin_emails"`
 }
 
 type AppCnf struct {
@@ -97,31 +91,6 @@ type AppCnf struct {
 
 type LoggerCnf struct {
 	LogLevel      string `yaml:"logLevel" env:"LOG_LEVEL"`
-	MinLogLevel   string `yaml:"minLogLevel" env:"MIN_LOG_LEVEL"`
-	LogErrorStack bool   `yaml:"logErrorStack" env:"LOG_ERROR_STACK"`
-}
-
-type GCPCnf struct {
-	ProjectID        string              `yaml:"projectID" env:"GCP_PROJECT_ID"`
-	ArtifactRegistry ArtifactRegistryCnf `yaml:"artifactRegistry"`
-	CloudSQL         CloudSQLCnf         `yaml:"cloudSQL"`
-	CloudRun         CloudRunCnf         `yaml:"cloudRun"`
-}
-
-type ArtifactRegistryCnf struct {
-	RepoLocation string `yaml:"repoLocation" env:"GCP_ARTIFACT_REGISTRY_REPO_LOCATION"`
-	RepoName     string `yaml:"repoName" env:"GCP_ARTIFACT_REGISTRY_REPO_NAME"`
-	ImageID      string `yaml:"imageID" env:"GCP_ARTIFACT_REGISTRY_IMAGE_ID"`
-	Tag          string `yaml:"tag" env:"GCP_ARTIFACT_REGISTRY_TAG"`
-}
-
-type CloudSQLCnf struct {
-	InstanceName           string `yaml:"instanceName" env:"GCP_CLOUD_SQL_INSTANCE_NAME"`
-	InstanceConnectionName string `yaml:"instanceConnectionName" env:"GCP_CLOUD_SQL_INSTANCE_CONNECTION_NAME"`
-}
-
-type CloudRunCnf struct {
-	ServiceName string `yaml:"serviceName" env:"GCP_CLOUD_RUN_SERVICE_NAME"`
 }
 
 type DBPostgresCnf struct {
@@ -148,17 +117,6 @@ type SessionCnf struct {
 	JWT       JWTCnf       `yaml:"jwt"`
 }
 
-type EmailCnf struct {
-	Contact   string   `yaml:"contact"`
-	NoReply   string   `yaml:"no_reply"`
-	Ceo       string   `yaml:"ceo"`
-	EAPAdmins []string `yaml:"eap_admins"`
-}
-
-type WebSocketCnf struct {
-	URL string `yaml:"url" env:"WEBSOCKET_URL"`
-}
-
 type BasicAuthCnf struct {
 	UserName string `yaml:"userName" env:"BASIC_AUTH_USERNAME"`
 	Password string `yaml:"password" env:"BASIC_AUTH_PASSWORD"`
@@ -178,25 +136,6 @@ type HTTPServerCnf struct {
 
 type CorsCnf struct {
 	AllowOrigins []string `yaml:"allowOrigins" env:"HTTP_SERVER_CORS_ALLOW_ORIGINS"`
-}
-
-type WebhookCnf struct {
-	Stripe StripeCnf `yaml:"stripe"`
-	Slack  SlackCnf  `yaml:"slack"`
-}
-
-type SlackCnf struct {
-	TransactionNotificationWebhookURL string `yaml:"transaction_notification_slack_url" env:"TRANSACTION_PAYMENT_NOTIFICATION_SLACK_URL"`
-	PaymentNotificationWebhookURL     string `yaml:"payment_notification_slack_url" env:"SLACK_PAYMENT_NOTIFICATION_SLACK_URL"`
-	CustomerSignUpWebhookURL          string `yaml:"customer_sign_up_slack_url" env:"SLACK_CUSTOMER_SIGN_UP_SLACK_URL"`
-	TherapistSignUpWebhookURL         string `yaml:"therapist_sign_up_slack_url" env:"SLACK_THERAPIST_SIGN_UP_SLACK_URL"`
-	FinishTestWebhookURL              string `yaml:"finish_test_slack_url" env:"SLACK_FINISH_TEST_SLACK_URL"`
-	UpdateTherapistScheduleURL        string `yaml:"update_therapist_schedule_url" env:"SLACK_UPDATE_THERAPIST_SCHEDULE_URL"`
-}
-
-type StripeCnf struct {
-	StripeEndpointKey string `yaml:"stripe_endpoint_key" env:"STRIPE_ENDPOINT_KEY"`
-	StripeSecretKey   string `yaml:"stripe_secret_key" env:"STRIPE_SECRET_KEY"`
 }
 
 // loadConfigAs to load config of specified struct

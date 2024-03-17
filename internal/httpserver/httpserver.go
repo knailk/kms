@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
+	"kms/app/api/routes"
 	"kms/app/config"
 	"kms/app/registry"
-	"kms/app/routes"
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
 
@@ -48,7 +48,6 @@ func Init(ctx context.Context, cfg *config.Config, tasks *shutdown.Tasks, provid
 
 	// Add shutdown task
 	tasks.Add(t)
-	return
 }
 
 func (t *task) Name() string {
