@@ -1,11 +1,10 @@
-package cmd
+package main
 
 import (
 	"context"
 	"fmt"
 	"kms/app/errs"
 	"kms/app/registry"
-	"kms/app/secure"
 	"kms/database/sqldb"
 	"kms/internal/config"
 	"kms/internal/httpserver"
@@ -14,10 +13,9 @@ import (
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
 	"kms/pkg/mailer"
+	"os"
 
 	"kms/internal/cache"
-
-	"golang.org/x/text/language"
 )
 
 const (
@@ -32,6 +30,13 @@ const (
 	// encryption key environment variable name
 	encryptKeyEnv string = "ENCRYPT_KEY"
 )
+
+func main() {
+	if err := Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "error from commands.Run(): %s\n", err)
+		os.Exit(1)
+	}
+}
 
 // Run parses command line flags and starts the server
 func Run() (err error) {
@@ -90,6 +95,8 @@ func Run() (err error) {
 	httpserver.Init(ctx, cfg, tasks, provider)
 
 	tasks.WaitForServerStop(ctx)
+
+	return nil
 }
 
 // portRange validates the port be in an acceptable range

@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"kms/app/errs"
-	"kms/app/external/infra/database"
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
 	"net/url"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 const (
@@ -127,8 +128,9 @@ func NewPostgreSQLPool(ctx context.Context, dsn PostgreSQLDSN, tasks *shutdown.T
 	cnn := dsn.KeywordValueConnectionString()
 
 	// Open the postgres database
-	// func Open(dataSourceName string) (*DB, error)
-	dbClient, err := database.Open(cnn)
+	dbClient, err := gorm.Open(postgres.Open(cnn), &gorm.Config{
+		Logger: gormLogger.Default.LogMode(gormLogger.Info),
+	})
 	if err != nil {
 		return nil, errs.E(op, err)
 	}
