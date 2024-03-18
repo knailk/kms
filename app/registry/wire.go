@@ -9,12 +9,13 @@ import (
 	"context"
 
 	"github.com/google/wire"
+	"kms/app/usecase/auth"
 )
 
-func InjectedSessionUseCase(
+func InjectedAuthUseCase(
 	ctx context.Context,
 	provider *Provider,
-) session.UseCase {
-	wire.Build(BuilderSet, session.NewUseCase)
+) auth.IUseCase {
+	wire.Build(BuilderSet, auth.NewUseCase)
 	return nil
 }

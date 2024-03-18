@@ -4,6 +4,7 @@ import (
 	"kms/app/config"
 	"kms/app/external/infra/redis"
 	"kms/app/external/infra/ristretto"
+	"kms/app/external/persistence/database/repository"
 	"kms/pkg/mailer"
 
 	"github.com/google/wire"
@@ -14,6 +15,7 @@ import (
 var (
 	BuilderSet = wire.NewSet(
 		// Repository
+		repository.NewPostgresRepository,
 
 		// Service
 		// userService.NewUserService,
