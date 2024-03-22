@@ -4,6 +4,7 @@ go 1.21.4
 
 require (
 	github.com/dgraph-io/ristretto v0.1.1
+	github.com/dimuska139/go-email-normalizer/v2 v2.0.0
 	github.com/gin-contrib/cors v1.7.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-redis/redis/v8 v8.11.5
@@ -22,10 +23,13 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
+	golang.org/x/crypto v0.21.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.61.0
 	gopkg.in/mail.v2 v2.3.1
 	gorm.io/driver/postgres v1.5.7
+	gorm.io/gen v0.3.25
 	gorm.io/gorm v1.25.7
+	gorm.io/plugin/dbresolver v1.5.1
 )
 
 require (
@@ -99,7 +103,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/mod v0.16.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
@@ -114,7 +117,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.2.0 // indirect
 	gorm.io/driver/mysql v1.5.4 // indirect
-	gorm.io/gen v0.3.25 // indirect
 	gorm.io/hints v1.1.2 // indirect
-	gorm.io/plugin/dbresolver v1.5.1 // indirect
 )

@@ -1,82 +1,57 @@
 package entity
 
 import (
-	"kms/app/errs"
 	"time"
-
-	"github.com/google/uuid"
 )
 
-// User - from Wikipedia: "A user is a person who utilizes a computer or network service." In the context of this
-// project, given that we allow Persons to authenticate with multiple providers, a User is akin to a persona
-// (Wikipedia - "The word persona derives from Latin, where it originally referred to a theatrical mask. On the
-// social web, users develop virtual personas as online identities.") and as such, a Person can have one or many
-// Users (for instance, I can have a GitHub user and a Google user, but I am just one Person).
-//
-// As a general, practical matter, most operations are considered at the User level. For instance, roles are
-// assigned at the user level instead of the Person level, which allows for more fine-grained access control.
 type User struct {
-	// ID: The unique identifier for the Person's profile
-	ID uuid.UUID
+	// Username: The unique identifier for the User's profile
+	Username string `json:"username" gorm:"primaryKey"`
 
-	// NamePrefix: The name prefix for the Profile (e.g. Mx., Ms., Mr., etc.)
-	NamePrefix string
+	// Password: The User's password
+	Password string `json:"password"`
 
-	// FirstName: The person's first name.
-	FirstName string
-
-	// MiddleName: The person's middle name.
-	MiddleName string
-
-	// LastName: The person's last name.
-	LastName string
+	Role UserRole `json:"role" gorm:"type:\"UserRole\""`
 
 	// FullName: The person's full name.
-	FullName string
+	FullName string `json:"fullName"`
 
-	// NameSuffix: The name suffix for the person's name (e.g. "PhD", "CCNA", "OBE").
-	// Other examples include generational designations like "Sr." and "Jr." and "I", "II", "III", etc.
-	NameSuffix string
-
-	// Nickname: The person's nickname
-	Nickname string
-
-	// Gender: The user's gender. TODO - setup Gender properly. not binary.
-	Gender string
+	// Gender: The user's gender.
+	Gender string `json:"gender"`
 
 	// Email: The primary email for the User
-	Email string
+	Email string `json:"email" gorm:"unique"`
 
-	// BirthDate: The full birthdate of a person (e.g. Dec 18, 1953)
-	BirthDate time.Time
+	// BirthDate: The full birthDate of a person (e.g. Dec 18, 1953)
+	BirthDate time.Time `json:"birthDate"`
+
+	// PhoneNumber: The phone number of the person.
+	PhoneNumber string `json:"phoneNumber"`
 
 	// PictureURL: URL of the person's picture image for the profile.
-	PictureURL string
+	PictureURL string `json:"pictureURL"`
+
+	// Address: The person's address.
+	Address string `json:"address"`
+
+	// CreatedAt: The time the User was created.
+	CreatedAt time.Time `json:"createdAt" gorm:"type:timestamp;default:now()"`
+
+	// UpdatedAt: The time the User was last updated.
+	UpdatedAt time.Time `json:"updatedAt" gorm:"type:timestamp;default:current_timestamp"`
+
+	// IsDeleted: Whether the User is deleted or not.
+	IsDeleted bool `json:"isDeleted" gorm:"default:false"`
 }
 
-// Validate determines whether the Person has proper data to be considered valid
-func (u User) Validate() error {
-	const op errs.Op = "entity/User.Validate"
+type UserRole string
 
-	switch {
-	case u.ID == uuid.Nil:
-		return errs.E(op, errs.Validation, "User ID cannot be nil")
-	case u.LastName == "":
-		return errs.E(op, errs.Validation, "User LastName cannot be empty")
-	case u.FirstName == "":
-		return errs.E(op, errs.Validation, "User FirstName cannot be empty")
-	}
+const (
+	UserRoleAdmin   UserRole = "admin"
+	UserRoleStudent UserRole = "student"
+	UserRoleTeacher UserRole = "teacher"
+	UserRoleChef    UserRole = "chef"
+	UserRoleDriver  UserRole = "driver"
+)
 
-	return nil
-}
-
-// NullUUID returns ID as uuid.NullUUID
-func (u User) NullUUID() uuid.NullUUID {
-	if u.ID == uuid.Nil {
-		return uuid.NullUUID{}
-	}
-	return uuid.NullUUID{
-		UUID:  u.ID,
-		Valid: true,
-	}
-}
+type UserRoleList []UserRole

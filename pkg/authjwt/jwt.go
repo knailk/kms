@@ -122,15 +122,15 @@ func VerifyToken(tokenStr string) (*AuthClaims, error) {
 	return claims.AuthClaims, nil
 }
 
-// VerifyAccessToken validate access token
-func VerifyAccessToken(tokenStr string) (*jwt.StandardClaims, error) {
-	claims := jwt.StandardClaims{}
-	_, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("verify token: %w", err)
-	}
+// // VerifyAccessToken validate access token
+// func VerifyAccessToken(tokenStr string) (*jwt.StandardClaims, error) {
+// 	claims := jwt.StandardClaims{}
+// 	_, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
+// 		return jwtSecret, nil
+// 	})
+// 	if err != nil {
+// 		return nil, fmt.Errorf("verify token: %w", err)
+// 	}
 
-	return &claims, nil
-}
+// 	return &claims, nil
+// }

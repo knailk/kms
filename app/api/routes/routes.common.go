@@ -21,7 +21,7 @@ func newCommonRoute(
 	)
 
 	V1AuthRoute := apiV1Group.Group("/auth")
-	V1AuthRoute.POST("/sign-in", authHdl.Login)
+	V1AuthRoute.POST("/login", authHdl.Login)
 	// V1AuthRoute.POST("/forgot-password/request", sessionHdl.ForgotPassword)
 	// V1AuthRoute.POST("/forgot-password/confirm", sessionHdl.ConfirmForgotPassword)
 

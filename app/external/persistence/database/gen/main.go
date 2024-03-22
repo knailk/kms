@@ -2,6 +2,7 @@ package main
 
 import (
 	"kms/app/domain/entity"
+	"kms/app/domain/repository"
 
 	"gorm.io/gen"
 )
@@ -13,6 +14,8 @@ func main() {
 		Mode:          gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface,
 		FieldNullable: true,
 	})
+
+	g.ApplyInterface(func(repository.IUserRepository) {}, entity.User{})
 
 	// Generate default DAO interface for those specified structs
 	g.ApplyBasic(

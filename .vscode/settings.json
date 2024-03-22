@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "Datastorer",
+        "gorm",
+        "logrus",
         "Ristretto",
         "sqldb",
         "usecase"

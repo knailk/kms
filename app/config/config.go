@@ -73,14 +73,14 @@ const (
 // Config defines the configuration file. It is the superset of
 // fields for the various environments/builds.
 type Config struct {
-	Env                 string        `yaml:"env" env:"ENV" default:"development"`
-	Platform            string        `yaml:"platform" env:"PLATFORM" default:"local"`
-	App                 AppCnf        `yaml:"app"`
-	Log                 LoggerCnf     `yaml:"logger"`
-	DB                  DBPostgresCnf `yaml:"db"`
-	Cache               CacheCnf      `yaml:"cache"`
-	Session             SessionCnf    `yaml:"session"`
-	HTTPServer          HTTPServerCnf `yaml:"httpServer"`
+	Env        string        `yaml:"env" env:"ENV" default:"development"`
+	Platform   string        `yaml:"platform" env:"PLATFORM" default:"local"`
+	App        AppCnf        `yaml:"app"`
+	Log        LoggerCnf     `yaml:"logger"`
+	DB         DBPostgresCnf `yaml:"db"`
+	Cache      CacheCnf      `yaml:"cache"`
+	Session    SessionCnf    `yaml:"session"`
+	HTTPServer HTTPServerCnf `yaml:"httpServer"`
 }
 
 type AppCnf struct {
@@ -90,7 +90,7 @@ type AppCnf struct {
 }
 
 type LoggerCnf struct {
-	LogLevel      string `yaml:"logLevel" env:"LOG_LEVEL"`
+	LogLevel string `yaml:"logLevel" env:"LOG_LEVEL"`
 }
 
 type DBPostgresCnf struct {
@@ -99,6 +99,7 @@ type DBPostgresCnf struct {
 	Password   string `yaml:"password" env:"DB_PG_PASSWORD"`
 	DBName     string `yaml:"dbName" env:"DB_PG_NAME"`
 	Port       int    `yaml:"port" env:"DB_PG_PORT"`
+	Migration  bool   `yaml:"migration" env:"DB_PG_MIGRATION" default:"false"`
 	SearchPath string `yaml:"searchPath" env:"DB_PG_SEARCH_PATH"`
 }
 

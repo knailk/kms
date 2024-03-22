@@ -47,13 +47,14 @@ func Init() (*config.Config, error) {
 }
 
 // NewPostgreSQLDSN initializes a sqldb.PostgreSQLDSN given a Flags struct
-func NewPostgreSQLDSN(cfg *config.Config) sqldb.PostgreSQLDSN {
-	return sqldb.PostgreSQLDSN{
+func NewPostgreSQLDSN(cfg *config.Config) sqldb.PostgresqlDSN {
+	return sqldb.PostgresqlDSN{
 		Host:       cfg.DB.Host,
 		Port:       cfg.DB.Port,
 		DBName:     cfg.DB.DBName,
 		SearchPath: cfg.DB.SearchPath,
 		User:       cfg.DB.User,
 		Password:   cfg.DB.Password,
+		Migration:  cfg.DB.Migration,
 	}
 }

@@ -3,6 +3,7 @@ package sqldb
 import (
 	"context"
 	"fmt"
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/internal/shutdown"
 	"kms/pkg/logger"
@@ -30,14 +31,15 @@ const (
 	DBSearchPathEnv string = "DB_SEARCH_PATH"
 )
 
-// PostgreSQLDSN is a PostgreSQL datasource name
-type PostgreSQLDSN struct {
+// PostgresqlDSN is a PostgreSQL datasource name
+type PostgresqlDSN struct {
 	Host       string
 	Port       int
 	DBName     string
 	SearchPath string
 	User       string
 	Password   string
+	Migration  bool
 }
 
 // ConnectionURI returns a formatted PostgreSQL datasource "Keyword/Value Connection String"
@@ -67,7 +69,7 @@ type PostgreSQLDSN struct {
 //	postgresql://user:secret@localhost
 //	postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
 //	postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
-func (dsn PostgreSQLDSN) ConnectionURI() string {
+func (dsn PostgresqlDSN) ConnectionURI() string {
 
 	const uriSchemeDesignator string = "postgresql"
 
@@ -94,7 +96,7 @@ func (dsn PostgreSQLDSN) ConnectionURI() string {
 }
 
 // KeywordValueConnectionString returns a formatted PostgreSQL datasource "Keyword/Value Connection String"
-func (dsn PostgreSQLDSN) KeywordValueConnectionString() string {
+func (dsn PostgresqlDSN) KeywordValueConnectionString() string {
 
 	var s string
 
@@ -116,9 +118,9 @@ func (dsn PostgreSQLDSN) KeywordValueConnectionString() string {
 	}
 }
 
-// NewPostgreSQLPool creates a new db pool and establishes a connection.
+// DBInit creates a new db pool and establishes a connection.
 // In addition, returns a Close function to defer closing the pool.
-func NewPostgreSQLPool(ctx context.Context, dsn PostgreSQLDSN, tasks *shutdown.Tasks) (*gorm.DB, error) {
+func DBInit(ctx context.Context, dsn PostgresqlDSN, tasks *shutdown.Tasks) (*gorm.DB, error) {
 	const op errs.Op = "sqldb/NewPostgreSQLPool"
 
 	if tasks.HasStopSignal() {
@@ -145,5 +147,25 @@ func NewPostgreSQLPool(ctx context.Context, dsn PostgreSQLDSN, tasks *shutdown.T
 		return nil, errs.E(op, err)
 	}
 
+	if dsn.Migration {
+		autoMigrate(dbClient)
+	}
+
 	return dbClient, nil
+}
+
+func autoMigrate(db *gorm.DB) {
+	// migration for miniapp
+	// create enums
+	execLines := []string{
+		`CREATE TYPE "UserRole" AS ENUM ('admin', 'student', 'teacher', 'chef', 'driver');`,
+	}
+	for _, line := range execLines {
+		db.Debug().Exec(line)
+	}
+	// create tables
+	db.AutoMigrate(
+		// add more models here for auto migrate when update models
+		entity.User{},
+	)
 }

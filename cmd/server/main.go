@@ -86,9 +86,9 @@ func Run() (err error) {
 	provider.MailClient = mailer.NewOTPMailer("config.AppConfig.OTPEmail", "config.AppConfig.OTPPassword")
 
 	// initialize PostgreSQL database
-	provider.DB, err = sqldb.NewPostgreSQLPool(ctx, config.NewPostgreSQLDSN(cfg), tasks)
+	provider.DB, err = sqldb.DBInit(ctx, config.NewPostgreSQLDSN(cfg), tasks)
 	if err != nil {
-		logger.Fatal("sqldb.NewPostgreSQLPool error: ", err)
+		logger.Fatal("sqldb.DBInit error: ", err)
 	}
 
 	// initialize HTTP Server enfolding a http.Server with default timeouts, a Gin router with /api subroute

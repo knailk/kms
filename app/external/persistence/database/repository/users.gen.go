@@ -6,6 +6,7 @@ package repository
 
 import (
 	"context"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -27,18 +28,19 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 
 	tableName := _user.userDo.TableName()
 	_user.ALL = field.NewAsterisk(tableName)
-	_user.ID = field.NewField(tableName, "id")
-	_user.NamePrefix = field.NewString(tableName, "name_prefix")
-	_user.FirstName = field.NewString(tableName, "first_name")
-	_user.MiddleName = field.NewString(tableName, "middle_name")
-	_user.LastName = field.NewString(tableName, "last_name")
+	_user.Username = field.NewString(tableName, "username")
+	_user.Password = field.NewString(tableName, "password")
+	_user.Role = field.NewString(tableName, "role")
 	_user.FullName = field.NewString(tableName, "full_name")
-	_user.NameSuffix = field.NewString(tableName, "name_suffix")
-	_user.Nickname = field.NewString(tableName, "nickname")
 	_user.Gender = field.NewString(tableName, "gender")
 	_user.Email = field.NewString(tableName, "email")
 	_user.BirthDate = field.NewTime(tableName, "birth_date")
+	_user.PhoneNumber = field.NewString(tableName, "phone_number")
 	_user.PictureURL = field.NewString(tableName, "picture_url")
+	_user.Address = field.NewString(tableName, "address")
+	_user.CreatedAt = field.NewTime(tableName, "created_at")
+	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_user.IsDeleted = field.NewBool(tableName, "is_deleted")
 
 	_user.fillFieldMap()
 
@@ -48,19 +50,20 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 type user struct {
 	userDo
 
-	ALL        field.Asterisk
-	ID         field.Field
-	NamePrefix field.String
-	FirstName  field.String
-	MiddleName field.String
-	LastName   field.String
-	FullName   field.String
-	NameSuffix field.String
-	Nickname   field.String
-	Gender     field.String
-	Email      field.String
-	BirthDate  field.Time
-	PictureURL field.String
+	ALL         field.Asterisk
+	Username    field.String
+	Password    field.String
+	Role        field.String
+	FullName    field.String
+	Gender      field.String
+	Email       field.String
+	BirthDate   field.Time
+	PhoneNumber field.String
+	PictureURL  field.String
+	Address     field.String
+	CreatedAt   field.Time
+	UpdatedAt   field.Time
+	IsDeleted   field.Bool
 
 	fieldMap map[string]field.Expr
 }
@@ -77,18 +80,19 @@ func (u user) As(alias string) *user {
 
 func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
-	u.ID = field.NewField(table, "id")
-	u.NamePrefix = field.NewString(table, "name_prefix")
-	u.FirstName = field.NewString(table, "first_name")
-	u.MiddleName = field.NewString(table, "middle_name")
-	u.LastName = field.NewString(table, "last_name")
+	u.Username = field.NewString(table, "username")
+	u.Password = field.NewString(table, "password")
+	u.Role = field.NewString(table, "role")
 	u.FullName = field.NewString(table, "full_name")
-	u.NameSuffix = field.NewString(table, "name_suffix")
-	u.Nickname = field.NewString(table, "nickname")
 	u.Gender = field.NewString(table, "gender")
 	u.Email = field.NewString(table, "email")
 	u.BirthDate = field.NewTime(table, "birth_date")
+	u.PhoneNumber = field.NewString(table, "phone_number")
 	u.PictureURL = field.NewString(table, "picture_url")
+	u.Address = field.NewString(table, "address")
+	u.CreatedAt = field.NewTime(table, "created_at")
+	u.UpdatedAt = field.NewTime(table, "updated_at")
+	u.IsDeleted = field.NewBool(table, "is_deleted")
 
 	u.fillFieldMap()
 
@@ -105,19 +109,20 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 12)
-	u.fieldMap["id"] = u.ID
-	u.fieldMap["name_prefix"] = u.NamePrefix
-	u.fieldMap["first_name"] = u.FirstName
-	u.fieldMap["middle_name"] = u.MiddleName
-	u.fieldMap["last_name"] = u.LastName
+	u.fieldMap = make(map[string]field.Expr, 13)
+	u.fieldMap["username"] = u.Username
+	u.fieldMap["password"] = u.Password
+	u.fieldMap["role"] = u.Role
 	u.fieldMap["full_name"] = u.FullName
-	u.fieldMap["name_suffix"] = u.NameSuffix
-	u.fieldMap["nickname"] = u.Nickname
 	u.fieldMap["gender"] = u.Gender
 	u.fieldMap["email"] = u.Email
 	u.fieldMap["birth_date"] = u.BirthDate
+	u.fieldMap["phone_number"] = u.PhoneNumber
 	u.fieldMap["picture_url"] = u.PictureURL
+	u.fieldMap["address"] = u.Address
+	u.fieldMap["created_at"] = u.CreatedAt
+	u.fieldMap["updated_at"] = u.UpdatedAt
+	u.fieldMap["is_deleted"] = u.IsDeleted
 }
 
 func (u user) clone(db *gorm.DB) user {
@@ -191,6 +196,23 @@ type IUserDo interface {
 	Returning(value interface{}, columns ...string) IUserDo
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
+
+	GetByUsername(username string) (result *entity.User, err error)
+}
+
+// SELECT * FROM @@table WHERE username=@username
+func (u userDo) GetByUsername(username string) (result *entity.User, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, username)
+	generateSQL.WriteString("SELECT * FROM users WHERE username=? ")
+
+	var executeSQL *gorm.DB
+	executeSQL = u.UnderlyingDB().Raw(generateSQL.String(), params...).Take(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
 }
 
 func (u userDo) Debug() IUserDo {

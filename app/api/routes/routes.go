@@ -93,8 +93,6 @@ func initRoutes(
 	if cfg.Env == config.EnvLocal || cfg.Env == config.EnvDevelopment {
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
-
-	return
 }
 
 // healthz for checking service status

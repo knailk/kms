@@ -12,7 +12,8 @@ db:
   password: ndtd1234
   dbName: local
   port: 7432
-  searchPath: demo
+  migration: false
+  # searchPath: local
 
 cache:
   url: redis://default:1234@localhost:16379/0

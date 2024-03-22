@@ -16,7 +16,7 @@ func init() {
 	// set output to stdout
 	log.SetOutput(os.Stdout)
 
-	log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 
 	// set log formatter
 	log.SetFormatter(&logrus.TextFormatter{
