@@ -168,4 +168,12 @@ func autoMigrate(db *gorm.DB) {
 		// add more models here for auto migrate when update models
 		entity.User{},
 	)
+
+	// add example data
+	exData := []string{
+		`Insert into users values ('admin', '$2a$10$xrN1wdrN468eibxIWel4te5v/3nvjzHR6VcCGXFlXflkQStPrGpu.', 'admin', 'admin', 'male', 'admin@gmail.com', '2001-01-30 23:59:59.000', '', '', '', '2001-01-30 23:59:59.000','2001-01-30 23:59:59.000',false ) `,
+	}
+	for _, line := range exData {
+		db.Debug().Exec(line)
+	}
 }

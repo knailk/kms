@@ -83,7 +83,7 @@ func initRoutes(
 	// route not found
 	router.NoRoute(func(ctx *gin.Context) {
 		logger.Error(errs.RouteNotFound.String())
-		errs.HTTPErrorResponse(ctx, errs.E(errs.RouteNotFound))
+		errs.HTTPErrorResponse(ctx, errs.E(errs.Op("NoRoute"), errs.RouteNotFound), &errs.Error{})
 	})
 
 	newCommonRoute(ctx, router, provider)
