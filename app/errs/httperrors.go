@@ -166,7 +166,7 @@ func unauthenticatedErrorResponse(ctx *gin.Context, e *Error) {
 	}
 
 	ctx.Header("WWW-Authenticate", fmt.Sprintf(`Bearer realm="%s"`, e.Realm))
-	ctx.Status(http.StatusUnauthorized)
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": e.Err.Error()})
 }
 
 // unauthorizedErrorResponse responds with http status code 403 (Forbidden)
@@ -192,7 +192,7 @@ func unauthorizedErrorResponse(ctx *gin.Context, e *Error) {
 		})
 	}
 
-	ctx.Status(http.StatusForbidden)
+	ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": e.Err.Error()})
 }
 
 // nilErrorResponse responds with http status code 500 (Internal Server Error)
@@ -203,7 +203,7 @@ func nilErrorResponse(ctx *gin.Context) {
 		"Message":        "nil error - no response body sent",
 	})
 
-	ctx.Status(http.StatusInternalServerError)
+	ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": " no response body sent"})
 }
 
 // unknownErrorResponse responds with http status code 500 (Internal Server Error)

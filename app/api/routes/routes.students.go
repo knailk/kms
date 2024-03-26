@@ -2,6 +2,8 @@ package routes
 
 import (
 	"context"
+	"kms/app/api/handler/auth"
+	"kms/app/api/handler/base"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
 	"kms/app/registry"
@@ -17,10 +19,18 @@ func newStudentRoute(
 	apiV1Group := router.Group(apiStudentV1)
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeStudent))
 
+	authCookie := base.NewAuthCookieHandler(provider.Config.Env,  entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
+
 	// auth
-	// V1AuthRoute := apiV1Group.Group("/auth")
-	// V1AuthRoute.GET("/me", sessionHdl.GetUserInfo)
-	// V1AuthRoute.POST("/change-password", sessionHdl.ChangePassword)
-	// V1AuthRoute.POST("/refresh", sessionHdl.Refresh)
-	// V1AuthRoute.POST("/logout", sessionHdl.Logout)
+	authHdl := auth.NewHandler(
+		registry.InjectedAuthUseCase(ctx, provider),
+		authCookie,
+	)
+	// auth
+	V1AuthRoute := apiV1Group.Group("/auth")
+	// V1AuthRoute.Use(author.NewAuthMiddleware(entity.UserTypeStudent))
+	V1AuthRoute.GET("/me", authHdl.GetInfo)
+	V1AuthRoute.POST("/refresh", authHdl.Refresh)
+	V1AuthRoute.POST("/logout", authHdl.Logout)
+	// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)
 }

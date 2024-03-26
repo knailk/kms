@@ -7,6 +7,7 @@ import (
 	"kms/app/external/persistence/database/repository"
 	"kms/pkg/authjwt"
 	"kms/pkg/helpers"
+	"kms/pkg/logger"
 
 	"github.com/google/uuid"
 )
@@ -52,6 +53,55 @@ func (uc *useCase) Login(ctx context.Context, req *LoginRequest) (*LoginResponse
 		BirthDate:    user.BirthDate,
 		PictureURL:   user.PictureURL,
 		Address:      user.Address,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+	}, nil
+}
+
+func (uc *useCase) GetInfo(ctx context.Context, req *GetInfoRequest) (*GetInfoResponse, error) {
+	const op errs.Op = "auth.useCase.GetInfo"
+
+	user, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).First()
+	if err != nil {
+		return nil, errs.E(op, err)
+	}
+
+	return &GetInfoResponse{
+		Username:    user.Username,
+		Email:       user.Email,
+		Role:        string(user.Role),
+		FullName:    user.FullName,
+		Gender:      user.Gender,
+		PhoneNumber: user.PhoneNumber,
+		BirthDate:   user.BirthDate,
+		PictureURL:  user.PictureURL,
+		Address:     user.Address,
+	}, nil
+}
+
+func (uc *useCase) Refresh(ctx context.Context, req *RefreshRequest) (*RefreshResponse, error) {
+	const op errs.Op = "auth.useCase.Refresh"
+	claims, err := uc.verifyJWTToken(req.RefreshToken)
+	if err != nil {
+		logger.Error("verify token failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	existedUser, err := uc.repo.User.Where(uc.repo.User.Username.Eq(claims.Username)).Count()
+	if err != nil {
+		logger.Error("find user failed: ", err)
+		return nil, err
+	}
+	if existedUser == 0 {
+		return nil, errs.E(op, errs.NotExist, "user not found")
+	}
+
+	tokenPair, err := uc.generateToken(claims.Role, claims.Username)
+	if err != nil {
+		return nil, errs.E(op, err, "failed to generate token pair")
+	}
+
+	return &RefreshResponse{
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 	}, nil

@@ -1,9 +1,9 @@
 package author
 
 import (
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/pkg/authjwt"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,24 +21,13 @@ func NewAuthMiddleware(role string) gin.HandlerFunc {
 func (m *AuthMiddleware) Handle(ctx *gin.Context) {
 	const op errs.Op = "middleware.author.Handle"
 
-	authHeader := ctx.GetHeader("Authorization")
-	if authHeader == "" {
-		errs.HTTPErrorResponse(ctx, errs.E(op, errs.Unauthorized, "missing authorization header"))
+	token, err := ctx.Cookie(entity.AccessKey)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.Unauthorized, "missing authorization token"))
 		return
 	}
 
-	headerParts := strings.Split(authHeader, " ")
-	if len(headerParts) != 2 {
-		errs.HTTPErrorResponse(ctx, errs.E(op, errs.Unauthorized, "invalid header format"))
-		return
-	}
-
-	if headerParts[0] != "Bearer" {
-		errs.HTTPErrorResponse(ctx, errs.E(op, errs.Unauthorized, "token must content bearer"))
-		return
-	}
-
-	user, err := authjwt.VerifyToken(headerParts[1])
+	user, err := authjwt.VerifyToken(token)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, errs.Unauthorized, "invalid token"))
 		return
@@ -49,6 +38,6 @@ func (m *AuthMiddleware) Handle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Set("CtxAuthenticatedUserKey", user)
+	ctx.Set(entity.CtxAuthenticatedUserKey, user)
 	ctx.Next()
 }

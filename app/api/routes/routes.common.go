@@ -5,17 +5,9 @@ import (
 	"kms/app/api/handler/auth"
 	"kms/app/api/handler/base"
 	"kms/app/registry"
+	"kms/app/domain/entity"
 
 	"github.com/gin-gonic/gin"
-)
-
-const (
-	accessKey              = "KMS_jwt_access"
-	refreshKey             = "KMS_jwt_refresh"
-	cookiePath             = "/api/v1/customer"
-	cookiePathRefreshToken = "/api/v1/auth/refresh"
-	cookieHTTPOnly         = false
-	cookieMaxAge           = 14400
 )
 
 func newCommonRoute(
@@ -25,7 +17,7 @@ func newCommonRoute(
 ) {
 	apiV1Group := router.Group(apiCommonV1)
 
-	authCookie := base.NewAuthCookieHandler(provider.Config.Env, accessKey, refreshKey, cookiePath, cookiePathRefreshToken, cookieHTTPOnly, cookieMaxAge)
+	authCookie := base.NewAuthCookieHandler(provider.Config.Env, entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
 
 	// auth
 	authHdl := auth.NewHandler(
@@ -37,5 +29,4 @@ func newCommonRoute(
 	V1AuthRoute.POST("/login", authHdl.Login)
 	// V1AuthRoute.POST("/forgot-password/request", sessionHdl.ForgotPassword)
 	// V1AuthRoute.POST("/forgot-password/confirm", sessionHdl.ConfirmForgotPassword)
-
 }
