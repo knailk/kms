@@ -12,7 +12,7 @@ db:
   password: ndtd1234
   dbName: local
   port: 7432
-  migration: false
+  migration: true
   # searchPath: local
 
 cache:

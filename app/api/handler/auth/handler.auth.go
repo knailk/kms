@@ -15,20 +15,20 @@ type handler struct {
 	uc auth.IUseCase
 }
 
-func NewHandler(uc auth.IUseCase) *handler {
-	return &handler{uc: uc}
+func NewHandler(uc auth.IUseCase, base base.AuthCookieHandler) *handler {
+	return &handler{uc: uc, authCookie: base}
 }
 
 func (h *handler) Login(ctx *gin.Context) {
 	const op errs.Op = "handler.auth.Login"
 
-	var req *auth.LoginRequest
-	if err := ctx.ShouldBindJSON(req); err != nil {
-		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error"))
+	var req auth.LoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error: "+err.Error()))
 		return
 	}
 
-	user, err := h.uc.Login(ctx, req)
+	user, err := h.uc.Login(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, err)
 		return

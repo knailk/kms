@@ -106,16 +106,12 @@ func typicalErrorResponse(ctx *gin.Context, e *Error) {
 	// get ErrResponse
 	er := newErrResponse(e)
 
-	// Marshal errResponse struct to JSON for the response body
-	errJSON, _ := json.Marshal(er)
-	ej := string(errJSON)
-
 	// Write Content-Type headers
 	ctx.Header("Content-Type", "application/json")
 	ctx.Header("X-Content-Type-Options", "nosniff")
 
 	// Write  HTTP StatusCode and response body (json)
-	ctx.JSON(httpStatusCode, ej)
+	ctx.JSON(httpStatusCode, er)
 }
 
 func newErrResponse(err *Error) ErrResponse {
@@ -223,16 +219,12 @@ func unknownErrorResponse(ctx *gin.Context, err error) {
 
 	logger.ErrorF("Unknown Error", logrus.Fields{"Error": err.Error()})
 
-	// Marshal errResponse struct to JSON for the response body
-	errJSON, _ := json.Marshal(er)
-	ej := string(errJSON)
-
 	// Write Content-Type headers
 	ctx.Header("Content-Type", "application/json")
 	ctx.Header("X-Content-Type-Options", "nosniff")
 
 	// Write HTTP Statuscode and response body (json)
-	ctx.JSON(http.StatusInternalServerError, ej)
+	ctx.JSON(http.StatusInternalServerError, er)
 }
 
 // httpErrorStatusCode maps an error Kind to an HTTP Status Code
