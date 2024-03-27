@@ -37,6 +37,12 @@ lint:
 
 check: mod lint test build
 
+# ----- Code migration -----
+mig-local-up:
+	ENV=local go run ${SRC_PATH}/cmd/migration/... -up
+mig-local-down:
+	ENV=local go run ${SRC_PATH}/cmd/migration/... -down
+
 # ----- Code generation -----
 gen: gen-go gen-wire gen-repo
 

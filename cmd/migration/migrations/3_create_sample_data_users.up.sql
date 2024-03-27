@@ -1,0 +1,6 @@
+INSERT INTO users (username, password, role, full_name, gender, email, birth_date, phone_number, picture_url, address, created_at, updated_at,is_deleted) VALUES 
+('admin', '$2a$10$xrN1wdrN468eibxIWel4te5v/3nvjzHR6VcCGXFlXflkQStPrGpu.', 'admin', 'admin', 'male', 'admin@gmail.com', '2001-01-30 23:59:59.000', '', '', '', '2001-01-30 23:59:59.000','2001-01-30 23:59:59.000',false ),
+('student', '$2a$10$xrN1wdrN468eibxIWel4te5v/3nvjzHR6VcCGXFlXflkQStPrGpu.', 'student', 'student', 'male', 'student@gmail.com', '2001-01-30 23:59:59.000', '', '', '', '2001-01-30 23:59:59.000','2001-01-30 23:59:59.000',false ),
+('teacher', '$2a$10$xrN1wdrN468eibxIWel4te5v/3nvjzHR6VcCGXFlXflkQStPrGpu.', 'teacher', 'teacher', 'male', 'teacher@gmail.com', '2001-01-30 23:59:59.000', '', '', '', '2001-01-30 23:59:59.000','2001-01-30 23:59:59.000',false ),
+('chef', '$2a$10$xrN1wdrN468eibxIWel4te5v/3nvjzHR6VcCGXFlXflkQStPrGpu.', 'chef', 'chef', 'male', 'chef@gmail.com', '2001-01-30 23:59:59.000', '', '', '', '2001-01-30 23:59:59.000','2001-01-30 23:59:59.000',false ),
+('driver', '$2a$10$xrN1wdrN468eibxIWel4te5v/3nvjzHR6VcCGXFlXflkQStPrGpu.', 'driver', 'driver', 'male', 'driver@gmail.com', '2001-01-30 23:59:59.000', '', '', '', '2001-01-30 23:59:59.000','2001-01-30 23:59:59.000',false );
