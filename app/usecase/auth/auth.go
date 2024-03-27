@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/external/persistence/database/repository"
 	"kms/pkg/authjwt"
@@ -35,7 +36,7 @@ func (uc *useCase) Login(ctx context.Context, req *LoginRequest) (*LoginResponse
 	}
 
 	if !helpers.ValidateHash(req.Password, user.Password) {
-		return nil, errs.E(op, errs.Invalid, "wrong password")
+		return nil, errs.E(op, errs.InvalidRequest, "wrong password")
 	}
 
 	tokenPair, err := uc.generateToken(string(user.Role), user.Username)
@@ -58,7 +59,7 @@ func (uc *useCase) Login(ctx context.Context, req *LoginRequest) (*LoginResponse
 	}, nil
 }
 
-func (uc *useCase) GetInfo(ctx context.Context, req *GetInfoRequest) (*GetInfoResponse, error) {
+func (uc *useCase) GetProfile(ctx context.Context, req *GetInfoRequest) (*GetInfoResponse, error) {
 	const op errs.Op = "auth.useCase.GetInfo"
 
 	user, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).First()
@@ -105,6 +106,48 @@ func (uc *useCase) Refresh(ctx context.Context, req *RefreshRequest) (*RefreshRe
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 	}, nil
+}
+
+func (uc *useCase) UpdateProfile(ctx context.Context, req *UpdateProfileRequest) (*UpdateProfileResponse, error) {
+	const op errs.Op = "auth.useCase.UpdateProfile"
+
+	kindErr := req.Validate()
+	if kindErr != errs.Other {
+		return nil, errs.E(op, kindErr, "validate error")
+	}
+
+	if req.Password != "" {
+		user, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).First()
+		if err != nil {
+			return nil, errs.E(op, err)
+		}
+
+		if !helpers.ValidateHash(req.OldPassword, user.Password) {
+			return nil, errs.E(op, errs.InvalidRequest, "wrong password")
+		}
+
+		req.Password, err = helpers.GenerateHash(req.Password)
+		if err != nil {
+			return nil, errs.E(op, errs.InvalidRequest, "generate hash error")
+		}
+	}
+
+	_, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).Updates(&entity.User{
+		Password:    req.Password,
+		FullName:    req.FullName,
+		Gender:      req.Gender,
+		PhoneNumber: req.PhoneNumber,
+		BirthDate:   req.BirthDate,
+		PictureURL:  req.PictureURL,
+		Address:     req.Address,
+		IsDeleted:   req.IsDeleted,
+	})
+	if err != nil {
+		logger.Error("verify token failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	return &UpdateProfileResponse{}, nil
 }
 
 func (uc *useCase) generateToken(

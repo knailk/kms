@@ -29,9 +29,15 @@ func newStudentRoute(
 	// auth
 	V1AuthRoute := apiV1Group.Group("/auth")
 	{
-		V1AuthRoute.GET("/me", authHdl.GetInfo)
 		V1AuthRoute.POST("/refresh", authHdl.Refresh)
 		V1AuthRoute.POST("/logout", authHdl.Logout)
 		// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)
+	}
+
+	// profile
+	V1ProfileRoute := apiV1Group.Group("/profile")
+	{
+		V1ProfileRoute.GET("/me", authHdl.GetProfile)
+		V1ProfileRoute.PUT("/me", authHdl.UpdateProfile)
 	}
 }

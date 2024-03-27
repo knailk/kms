@@ -35,3 +35,5 @@ type RefreshResponse struct {
 	AccessToken  authjwt.Token `json:"-"`
 	RefreshToken authjwt.Token `json:"-"`
 }
+
+type UpdateProfileResponse struct{}
