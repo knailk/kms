@@ -11,13 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func newStudentRoute(
+func newDriverRoute(
 	ctx context.Context,
 	router *gin.Engine,
 	provider *registry.Provider,
 ) {
-	apiV1Group := router.Group(apiStudentV1)
-	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeStudent))
+	apiV1Group := router.Group(apiDriverV1)
+	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeDriver))
 
 	authCookie := base.NewAuthCookieHandler(provider.Config.Env, entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
 

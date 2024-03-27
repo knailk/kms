@@ -28,7 +28,6 @@ const (
 	// apiAdminV1     = "/api/v1/admin"
 )
 
-
 // NewGinRouter initializes a gin-gonic/gin router
 func NewGinRouter(ctx context.Context, cfg *config.Config, tasks *shutdown.Tasks, provider *registry.Provider) *gin.Engine {
 	// Enable Release mode for production
@@ -88,8 +87,14 @@ func initRoutes(
 	})
 
 	newCommonRoute(ctx, router, provider)
-	
+
 	newStudentRoute(ctx, router, provider)
+
+	newTeacherRoute(ctx, router, provider)
+
+	newDriverRoute(ctx, router, provider)
+
+	newChefRoute(ctx, router, provider)
 
 	// Init swagger routes
 	if cfg.Env == config.EnvLocal || cfg.Env == config.EnvDevelopment {
