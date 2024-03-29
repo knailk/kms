@@ -80,7 +80,7 @@ func migrate(db *gorm.DB, action string) (err error) {
 		tx := db.Exec(string(data))
 		if tx.Error != nil {
 			fmt.Println(err)
-			return fmt.Errorf("error when exec query in file:%v", file)
+			// return fmt.Errorf("error when exec query in file:%v", file)
 		}
 	}
 

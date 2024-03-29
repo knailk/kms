@@ -16,34 +16,49 @@ import (
 )
 
 var (
-	Q    = new(Query)
-	User *user
+	Q               = new(Query)
+	ChatMessage     *chatMessage
+	ChatParticipant *chatParticipant
+	ChatSession     *chatSession
+	User            *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	ChatMessage = &Q.ChatMessage
+	ChatParticipant = &Q.ChatParticipant
+	ChatSession = &Q.ChatSession
 	User = &Q.User
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:   db,
-		User: newUser(db, opts...),
+		db:              db,
+		ChatMessage:     newChatMessage(db, opts...),
+		ChatParticipant: newChatParticipant(db, opts...),
+		ChatSession:     newChatSession(db, opts...),
+		User:            newUser(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	User user
+	ChatMessage     chatMessage
+	ChatParticipant chatParticipant
+	ChatSession     chatSession
+	User            user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:   db,
-		User: q.User.clone(db),
+		db:              db,
+		ChatMessage:     q.ChatMessage.clone(db),
+		ChatParticipant: q.ChatParticipant.clone(db),
+		ChatSession:     q.ChatSession.clone(db),
+		User:            q.User.clone(db),
 	}
 }
 
@@ -57,18 +72,27 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:   db,
-		User: q.User.replaceDB(db),
+		db:              db,
+		ChatMessage:     q.ChatMessage.replaceDB(db),
+		ChatParticipant: q.ChatParticipant.replaceDB(db),
+		ChatSession:     q.ChatSession.replaceDB(db),
+		User:            q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	User IUserDo
+	ChatMessage     IChatMessageDo
+	ChatParticipant IChatParticipantDo
+	ChatSession     IChatSessionDo
+	User            IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		User: q.User.WithContext(ctx),
+		ChatMessage:     q.ChatMessage.WithContext(ctx),
+		ChatParticipant: q.ChatParticipant.WithContext(ctx),
+		ChatSession:     q.ChatSession.WithContext(ctx),
+		User:            q.User.WithContext(ctx),
 	}
 }
 

@@ -159,6 +159,7 @@ func autoMigrate(db *gorm.DB) {
 	// create enums
 	execLines := []string{
 		`CREATE TYPE "UserRole" AS ENUM ('admin', 'student', 'teacher', 'chef', 'driver');`,
+		`CREATE TYPE "MessageType" AS ENUM ('text', 'image', 'video', 'audio', 'file', 'link', 'voice', 'sticker');`,
 	}
 	for _, line := range execLines {
 		db.Debug().Exec(line)
@@ -167,5 +168,8 @@ func autoMigrate(db *gorm.DB) {
 	db.AutoMigrate(
 		// add more models here for auto migrate when update models
 		entity.User{},
+		entity.ChatSession{},
+		entity.ChatParticipant{},
+		entity.ChatMessage{},
 	)
 }
