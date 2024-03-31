@@ -8,4 +8,5 @@ type IUseCase interface {
 	ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error)
 	GetChat(ctx context.Context, req *GetChatRequest) (*GetChatResponse, error)
 	UpdateChat(ctx context.Context, req *UpdateChatRequest) (*UpdateChatResponse, error)
+	DeleteChat(ctx context.Context, req *DeleteChatRequest) (*DeleteChatResponse, error)
 }

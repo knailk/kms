@@ -12,10 +12,10 @@ import (
 )
 
 type useCase struct {
-	repo repository.PostgresRepository
+	repo *repository.PostgresRepository
 }
 
-func NewUseCase(repo repository.PostgresRepository) IUseCase {
+func NewUseCase(repo *repository.PostgresRepository) IUseCase {
 	return &useCase{
 		repo: repo,
 	}
@@ -23,6 +23,12 @@ func NewUseCase(repo repository.PostgresRepository) IUseCase {
 
 func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*CreateChatResponse, error) {
 	const op errs.Op = "useCase.chat.CreateChat"
+
+	errKind := req.Validate()
+	if errKind != errs.Other {
+		return nil, errs.E(op, errKind, "validate request error")
+	}
+
 	chatSessionID := uuid.New()
 
 	participants := []entity.ChatParticipant{}
@@ -41,19 +47,10 @@ func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*Cre
 		IsOwner:       true,
 	})
 
-	message := entity.ChatMessage{
-		ID:            uuid.New(),
-		ChatSessionID: chatSessionID,
-		Sender:        req.Owner,
-		Message:       req.Message,
-		Type:          req.MessageType,
-	}
-
 	err := uc.repo.ChatSession.Create(&entity.ChatSession{
 		ID:               chatSessionID,
-		Name:             req.Name,
+		Name:             generateChatName(append([]string{req.Owner}, req.Participants...)),
 		ChatParticipants: participants,
-		ChatMessages:     []entity.ChatMessage{message},
 	})
 	if err != nil {
 		logger.Error(op, err)
@@ -65,30 +62,113 @@ func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*Cre
 
 func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMemberResponse, error) {
 	const op errs.Op = "useCase.chat.AddMember"
-	err := uc.repo.ChatParticipant.Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "user_id"}, {Name: "chat_session_id"}},
-			DoNothing: true,
-		},
-	).Create(&entity.ChatParticipant{
-		ID:            uuid.New(),
-		ChatSessionID: req.ChatSessionID,
-		UserID:        req.UserID,
-		IsOwner:       false,
-	})
+	chatSession, err := uc.repo.ChatSession.
+		Where(uc.repo.ChatSession.ID.Eq(req.ChatSessionID)).
+		Preload(uc.repo.ChatSession.ChatParticipants).
+		First()
 	if err != nil {
-		logger.Error(op, err)
+		logger.Error(op, " get chat session error :", err)
 		return nil, errs.E(op, errs.Database, err)
 	}
-	return &AddMemberResponse{}, nil
+
+	if len(chatSession.ChatParticipants) >= 3 {
+		err = uc.repo.ChatParticipant.Clauses(
+			clause.OnConflict{
+				Columns:   []clause.Column{{Name: "user_id"}, {Name: "chat_session_id"}},
+				DoNothing: true,
+			},
+		).Create(&entity.ChatParticipant{
+			ID:            uuid.New(),
+			ChatSessionID: req.ChatSessionID,
+			UserID:        req.UserID,
+			IsOwner:       false,
+		})
+		if err != nil {
+			logger.Error(op, err)
+			return nil, errs.E(op, errs.Database, err)
+		}
+	} else {
+		participants := make([]string, len(chatSession.ChatParticipants))
+		for _, p := range chatSession.ChatParticipants {
+			if p.UserID == req.Adder {
+				continue
+			}
+			participants = append(participants, p.UserID)
+		}
+
+		uc.CreateChat(ctx, &CreateChatRequest{
+			Participants: participants,
+			Owner:        req.Adder,
+		})
+	}
+
+	return &AddMemberResponse{
+		IsNewChat: len(chatSession.ChatParticipants) < 3,
+	}, nil
 }
 
 func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error) {
-	return nil, nil
+	const op errs.Op = "useCase.chat.ListChats"
+	chatSessions, err := uc.repo.ChatSession.
+		LeftJoin(
+			uc.repo.ChatParticipant,
+			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
+		Where(uc.repo.ChatParticipant.UserID.Eq(req.UserRequester)).
+		Preload(uc.repo.ChatSession.ChatParticipants).
+		Preload(uc.repo.ChatSession.ChatParticipants.User).
+		Find()
+	if err != nil {
+		logger.Error(op, " get chat session error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &ListChatsResponse{
+		ChatSessions: toListChatResponse(chatSessions, req.UserRequester),
+	}, nil
 }
+
 func (uc *useCase) GetChat(ctx context.Context, req *GetChatRequest) (*GetChatResponse, error) {
-	return nil, nil
+	const op errs.Op = "useCase.chat.GetChat"
+	chatSession, err := uc.repo.ChatSession.
+		LeftJoin(
+			uc.repo.ChatParticipant,
+			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
+		Where(
+			uc.repo.ChatSession.ID.Eq(req.ChatSessionID),
+			uc.repo.ChatParticipant.UserID.Eq(req.UserRequester),
+		).
+		Preload(uc.repo.ChatSession.ChatParticipants).
+		Preload(uc.repo.ChatSession.ChatParticipants.User).
+		Preload(uc.repo.ChatSession.ChatMessages).
+		First()
+	if err != nil {
+		logger.Error(op, " get chat session error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return toGetChatResponse(chatSession, req.UserRequester), nil
 }
+
 func (uc *useCase) UpdateChat(ctx context.Context, req *UpdateChatRequest) (*UpdateChatResponse, error) {
-	return nil, nil
+	const op errs.Op = "useCase.chat.UpdateChat"
+	_, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ID.Eq(req.ChatID)).Updates(map[string]interface{}{
+		"name": req.Name,
+	})
+	if err != nil {
+		logger.Error(op, " update chat session error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &UpdateChatResponse{}, nil
+}
+
+func (uc *useCase) DeleteChat(ctx context.Context, req *DeleteChatRequest) (*DeleteChatResponse, error) {
+	const op errs.Op = "useCase.chat.DeleteChat"
+	_, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ID.Eq(req.ChatID)).Delete()
+	if err != nil {
+		logger.Error(op, " delete chat session error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &DeleteChatResponse{}, nil
 }

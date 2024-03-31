@@ -4,6 +4,7 @@ import (
 	"context"
 	"kms/app/api/handler/auth"
 	"kms/app/api/handler/base"
+	"kms/app/api/handler/chat"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
 	"kms/app/registry"
@@ -39,5 +40,21 @@ func newStudentRoute(
 	{
 		V1ProfileRoute.GET("/me", authHdl.GetProfile)
 		V1ProfileRoute.PUT("/me", authHdl.UpdateProfile)
+	}
+
+	// chat handler
+	chatHdl := chat.NewHandler(
+		registry.InjectedChatUseCase(ctx, provider),
+		authCookie,
+	)
+	// chat
+	V1ChatRoute := apiV1Group.Group("/chat")
+	{
+		V1ChatRoute.POST("/", chatHdl.CreateChat)
+		V1ChatRoute.PUT("/member", chatHdl.AddMember)
+		V1ChatRoute.GET("/", chatHdl.ListChats)
+		V1ChatRoute.GET("/:id", chatHdl.GetChat)
+		V1ChatRoute.PUT("/:id", chatHdl.UpdateChat)
+		V1ChatRoute.DELETE("/:id", chatHdl.DeleteChat)
 	}
 }

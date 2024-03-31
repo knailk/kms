@@ -30,6 +30,7 @@ require (
 	gorm.io/gen v0.3.25
 	gorm.io/gorm v1.25.7
 	gorm.io/plugin/dbresolver v1.5.1
+	gorm.io/plugin/soft_delete v1.2.1
 )
 
 require (

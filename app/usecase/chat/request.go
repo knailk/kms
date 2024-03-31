@@ -1,33 +1,44 @@
 package chat
 
 import (
-	"kms/app/domain/entity"
+	"kms/app/errs"
 
 	"github.com/google/uuid"
 )
 
 type CreateChatRequest struct {
-	Owner        string             `json:"-"`
-	Name         string             `json:"name"`
-	Participants []string           `json:"participants"`
-	Message      string             `json:"message"`
-	MessageType  entity.MessageType `json:"message_type"`
+	Owner        string   `json:"-"`
+	Participants []string `json:"participants"`
+}
+
+func (c *CreateChatRequest) Validate() errs.Kind {
+	if len(c.Participants) < 2 {
+		return errs.InvalidRequest
+	}
+
+	return errs.Other
 }
 
 type AddMemberRequest struct {
+	Adder         string    `json:"-"`
 	UserID        string    `json:"user_id"`
 	ChatSessionID uuid.UUID `json:"chat_id"`
 }
 
 type ListChatsRequest struct {
-	Owner string `json:"-"`
-}
-
-type UpdateChatRequest struct {
-	ChatID uuid.UUID `json:"chat_id"`
-	Name   string    `json:"name"`
+	UserRequester string `json:"-"`
 }
 
 type GetChatRequest struct {
-	ChatID uuid.UUID `json:"chat_id"`
+	UserRequester string    `json:"-"`
+	ChatSessionID uuid.UUID `json:"-"`
+}
+
+type UpdateChatRequest struct {
+	ChatID uuid.UUID `json:"-"`
+	Name   string    `json:"name"`
+}
+
+type DeleteChatRequest struct {
+	ChatID uuid.UUID `json:"-"`
 }

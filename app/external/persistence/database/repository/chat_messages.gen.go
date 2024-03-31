@@ -32,7 +32,6 @@ func newChatMessage(db *gorm.DB, opts ...gen.DOOption) chatMessage {
 	_chatMessage.Sender = field.NewString(tableName, "sender")
 	_chatMessage.Message = field.NewString(tableName, "message")
 	_chatMessage.Type = field.NewString(tableName, "type")
-	_chatMessage.IsRead = field.NewBool(tableName, "is_read")
 	_chatMessage.CreatedAt = field.NewTime(tableName, "created_at")
 	_chatMessage.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_chatMessage.IsDeleted = field.NewUint(tableName, "is_deleted")
@@ -51,7 +50,6 @@ type chatMessage struct {
 	Sender        field.String
 	Message       field.String
 	Type          field.String
-	IsRead        field.Bool
 	CreatedAt     field.Time
 	UpdatedAt     field.Time
 	IsDeleted     field.Uint
@@ -76,7 +74,6 @@ func (c *chatMessage) updateTableName(table string) *chatMessage {
 	c.Sender = field.NewString(table, "sender")
 	c.Message = field.NewString(table, "message")
 	c.Type = field.NewString(table, "type")
-	c.IsRead = field.NewBool(table, "is_read")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 	c.IsDeleted = field.NewUint(table, "is_deleted")
@@ -96,13 +93,12 @@ func (c *chatMessage) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *chatMessage) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 9)
+	c.fieldMap = make(map[string]field.Expr, 8)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["chat_session_id"] = c.ChatSessionID
 	c.fieldMap["sender"] = c.Sender
 	c.fieldMap["message"] = c.Message
 	c.fieldMap["type"] = c.Type
-	c.fieldMap["is_read"] = c.IsRead
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["is_deleted"] = c.IsDeleted

@@ -13,7 +13,6 @@ type ChatMessage struct {
 	Sender        string
 	Message       string
 	Type          MessageType `gorm:"type:\"MessageType\""`
-	IsRead        bool
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	IsDeleted     soft_delete.DeletedAt `gorm:"softDelete:flag"`
@@ -30,6 +29,8 @@ const (
 	MessageVoice    MessageType = "voice"
 	MessageSticker  MessageType = "sticker"
 	MessageLocation MessageType = "location"
+
+	JoinChatMessage MessageType = "join_chat"
 )
 
 func (m MessageType) String() string {
