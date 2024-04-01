@@ -5,6 +5,7 @@ import (
 	"kms/app/api/handler/auth"
 	"kms/app/api/handler/base"
 	"kms/app/api/handler/chat"
+	"kms/app/api/handler/user"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
 	"kms/app/registry"
@@ -27,7 +28,6 @@ func newStudentRoute(
 		registry.InjectedAuthUseCase(ctx, provider),
 		authCookie,
 	)
-	// auth
 	V1AuthRoute := apiV1Group.Group("/auth")
 	{
 		V1AuthRoute.POST("/refresh", authHdl.Refresh)
@@ -35,11 +35,16 @@ func newStudentRoute(
 		// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)
 	}
 
-	// profile
-	V1ProfileRoute := apiV1Group.Group("/profile")
+	// user handler
+	userHdl := user.NewHandler(
+		registry.InjectedUserUseCase(ctx, provider),
+		authCookie,
+	)
+	V1UserRoute := apiV1Group.Group("/profile")
 	{
-		V1ProfileRoute.GET("/me", authHdl.GetProfile)
-		V1ProfileRoute.PUT("/me", authHdl.UpdateProfile)
+		V1UserRoute.GET("/me", userHdl.GetProfile)
+		V1UserRoute.PUT("/me", userHdl.UpdateUser)
+		V1UserRoute.GET("/", userHdl.SearchUser)
 	}
 
 	// chat handler
@@ -47,7 +52,6 @@ func newStudentRoute(
 		registry.InjectedChatUseCase(ctx, provider),
 		authCookie,
 	)
-	// chat
 	V1ChatRoute := apiV1Group.Group("/chat")
 	{
 		V1ChatRoute.POST("/", chatHdl.CreateChat)

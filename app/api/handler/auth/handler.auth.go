@@ -5,8 +5,6 @@ import (
 	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/usecase/auth"
-	"kms/pkg/authjwt"
-	"kms/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -68,43 +66,4 @@ func (h *handler) Refresh(ctx *gin.Context) {
 func (h *handler) Logout(ctx *gin.Context) {
 	h.authCookie.ExpireJWTCookie(ctx)
 	ctx.JSON(http.StatusOK, "OK")
-}
-
-func (h *handler) GetProfile(ctx *gin.Context) {
-	const op errs.Op = "handler.auth.GetInfo"
-
-	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
-
-	user, err := h.uc.GetProfile(ctx, &auth.GetInfoRequest{Username: userClaims.Username})
-	if err != nil {
-		errs.HTTPErrorResponse(ctx, errs.E(op, err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, user)
-}
-
-func (h *handler) UpdateProfile(ctx *gin.Context) {
-	const op errs.Op = "handler.auth.UpdateProfile"
-
-	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
-
-	var req auth.UpdateProfileRequest
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		msg := "bind json error: " + err.Error()
-		logger.Error(msg)
-		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
-		return
-	}
-
-	req.Username = userClaims.Username
-
-	res, err := h.uc.UpdateProfile(ctx, &req)
-	if err != nil {
-		errs.HTTPErrorResponse(ctx, errs.E(op, err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, res)
 }

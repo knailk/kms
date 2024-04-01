@@ -29,7 +29,6 @@ func newTeacherRoute(
 	// auth
 	V1AuthRoute := apiV1Group.Group("/auth")
 	{
-		V1AuthRoute.GET("/me", authHdl.GetProfile)
 		V1AuthRoute.POST("/refresh", authHdl.Refresh)
 		V1AuthRoute.POST("/logout", authHdl.Logout)
 		// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)

@@ -11,6 +11,7 @@ import (
 	"kms/app/external/persistence/database/repository"
 	"kms/app/usecase/auth"
 	"kms/app/usecase/chat"
+	"kms/app/usecase/user"
 )
 
 // Injectors from wire.go:
@@ -19,6 +20,13 @@ func InjectedAuthUseCase(ctx context.Context, provider *Provider) auth.IUseCase 
 	db := provider.DB
 	postgresRepository := repository.NewPostgresRepository(db)
 	iUseCase := auth.NewUseCase(postgresRepository)
+	return iUseCase
+}
+
+func InjectedUserUseCase(ctx context.Context, provider *Provider) user.IUseCase {
+	db := provider.DB
+	postgresRepository := repository.NewPostgresRepository(db)
+	iUseCase := user.NewUseCase(postgresRepository)
 	return iUseCase
 }
 

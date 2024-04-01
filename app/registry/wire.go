@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/wire"
 	"kms/app/usecase/auth"
+	"kms/app/usecase/user"
 	"kms/app/usecase/chat"
 )
 
@@ -18,6 +19,14 @@ func InjectedAuthUseCase(
 	provider *Provider,
 ) auth.IUseCase {
 	wire.Build(BuilderSet, auth.NewUseCase)
+	return nil
+}
+
+func InjectedUserUseCase(
+	ctx context.Context,
+	provider *Provider,
+) user.IUseCase {
+	wire.Build(BuilderSet, user.NewUseCase)
 	return nil
 }
 
