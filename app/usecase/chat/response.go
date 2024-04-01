@@ -21,7 +21,7 @@ type UpdateChatResponse struct{}
 type GetChatResponse struct {
 	ID           uuid.UUID          `json:"id"`
 	Name         string             `json:"name"`
-	ChatMessages []*MessageResponse `json:"chatMessages,omitempty"`
+	ChatMessages []*MessageResponse `json:"chatMessages"`
 
 	CreatedAt time.Time `json:"createdAt"`
 }
@@ -38,3 +38,5 @@ type MessageResponse struct {
 }
 
 type DeleteChatResponse struct{}
+
+type CreateMessageResponse struct{}

@@ -31,12 +31,18 @@ func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*Cre
 
 	chatSessionID := uuid.New()
 
+	users, err := uc.repo.User.Where(uc.repo.User.Username.In(req.Participants...)).Find()
+	if err != nil {
+		logger.Error(op, " get user error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
 	participants := []entity.ChatParticipant{}
-	for _, user := range req.Participants {
+	for _, user := range users {
 		participants = append(participants, entity.ChatParticipant{
 			ID:            uuid.New(),
 			ChatSessionID: chatSessionID,
-			UserID:        user,
+			UserID:        user.Username,
 		})
 	}
 
@@ -47,7 +53,7 @@ func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*Cre
 		IsOwner:       true,
 	})
 
-	err := uc.repo.ChatSession.Create(&entity.ChatSession{
+	err = uc.repo.ChatSession.Create(&entity.ChatSession{
 		ID:               chatSessionID,
 		Name:             generateChatName(append([]string{req.Owner}, req.Participants...)),
 		ChatParticipants: participants,
@@ -151,7 +157,7 @@ func (uc *useCase) GetChat(ctx context.Context, req *GetChatRequest) (*GetChatRe
 
 func (uc *useCase) UpdateChat(ctx context.Context, req *UpdateChatRequest) (*UpdateChatResponse, error) {
 	const op errs.Op = "useCase.chat.UpdateChat"
-	_, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ID.Eq(req.ChatID)).Updates(map[string]interface{}{
+	_, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ID.Eq(req.ChatSessionID)).Updates(map[string]interface{}{
 		"name": req.Name,
 	})
 	if err != nil {
@@ -164,11 +170,43 @@ func (uc *useCase) UpdateChat(ctx context.Context, req *UpdateChatRequest) (*Upd
 
 func (uc *useCase) DeleteChat(ctx context.Context, req *DeleteChatRequest) (*DeleteChatResponse, error) {
 	const op errs.Op = "useCase.chat.DeleteChat"
-	_, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ID.Eq(req.ChatID)).Delete()
+	_, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ID.Eq(req.ChatSessionID)).Delete()
 	if err != nil {
 		logger.Error(op, " delete chat session error :", err)
 		return nil, errs.E(op, errs.Database, err)
 	}
 
 	return &DeleteChatResponse{}, nil
+}
+
+func (uc *useCase) CreateMessage(ctx context.Context, req *CreateMessageRequest) (*CreateMessageResponse, error) {
+	const op errs.Op = "useCase.chat.CreateMessage"
+	errKind := req.Validate()
+	if errKind != errs.Other {
+		return nil, errs.E(op, errKind, "validate request error")
+	}
+
+	count, err := uc.repo.ChatParticipant.Where(uc.repo.ChatParticipant.ChatSessionID.Eq(req.ChatSessionID), uc.repo.ChatParticipant.UserID.Eq(req.Sender)).Count()
+	if err != nil {
+		logger.Error(op, " get participant error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	if count == 0 {
+		return nil, errs.E(op, errs.Invalid, "sender not in chat")
+	}
+
+	err = uc.repo.ChatMessage.Create(&entity.ChatMessage{
+		ID:            uuid.New(),
+		ChatSessionID: req.ChatSessionID,
+		Sender:        req.Sender,
+		Message:       req.Message,
+		Type:          req.Type,
+	})
+	if err != nil {
+		logger.Error(op, " create message error :", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &CreateMessageResponse{}, nil
 }

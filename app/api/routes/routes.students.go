@@ -56,5 +56,6 @@ func newStudentRoute(
 		V1ChatRoute.GET("/:id", chatHdl.GetChat)
 		V1ChatRoute.PUT("/:id", chatHdl.UpdateChat)
 		V1ChatRoute.DELETE("/:id", chatHdl.DeleteChat)
+		V1ChatRoute.POST("/:id/message", chatHdl.CreateMessage)
 	}
 }

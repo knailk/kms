@@ -108,7 +108,7 @@ func (h *handler) UpdateChat(ctx *gin.Context) {
 		return
 	}
 
-	req.ChatID = uuid.MustParse(ctx.Param("id"))
+	req.ChatSessionID = uuid.MustParse(ctx.Param("id"))
 
 	res, err := h.uc.UpdateChat(ctx, &req)
 	if err != nil {
@@ -123,8 +123,31 @@ func (h *handler) DeleteChat(ctx *gin.Context) {
 	const op errs.Op = "handler.chat.DeleteChat"
 
 	res, err := h.uc.DeleteChat(ctx, &chat.DeleteChatRequest{
-		ChatID: uuid.MustParse(ctx.Param("id")),
+		ChatSessionID: uuid.MustParse(ctx.Param("id")),
 	})
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (h *handler) CreateMessage(ctx *gin.Context) {
+	const op errs.Op = "handler.chat.CreateMessage"
+
+	var req chat.CreateMessageRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error: "+err.Error()))
+		return
+	}
+
+	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
+
+	req.ChatSessionID = uuid.MustParse(ctx.Param("id"))
+	req.Sender = userClaims.Username
+
+	res, err := h.uc.CreateMessage(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, err)
 		return

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"kms/app/domain/entity"
 	"kms/app/errs"
 
 	"github.com/google/uuid"
@@ -12,7 +13,7 @@ type CreateChatRequest struct {
 }
 
 func (c *CreateChatRequest) Validate() errs.Kind {
-	if len(c.Participants) < 2 {
+	if len(c.Participants) < 1 {
 		return errs.InvalidRequest
 	}
 
@@ -35,10 +36,26 @@ type GetChatRequest struct {
 }
 
 type UpdateChatRequest struct {
-	ChatID uuid.UUID `json:"-"`
-	Name   string    `json:"name"`
+	ChatSessionID uuid.UUID `json:"-"`
+	Name          string    `json:"name"`
 }
 
 type DeleteChatRequest struct {
-	ChatID uuid.UUID `json:"-"`
+	ChatSessionID uuid.UUID `json:"-"`
+}
+
+type CreateMessageRequest struct {
+	Sender string `json:"-"`
+
+	ChatSessionID uuid.UUID          `json:"-"`
+	Message       string             `json:"message"`
+	Type          entity.MessageType `json:"type"`
+}
+
+func (c *CreateMessageRequest) Validate() errs.Kind {
+	if c.Message == "" || c.Type == "" || c.ChatSessionID == uuid.Nil || c.Sender == "" {
+		return errs.InvalidRequest
+	}
+
+	return errs.Other
 }
