@@ -19,5 +19,5 @@ type GetUserResponse struct {
 type UpdateUserResponse struct{}
 
 type SearchUserResponse struct {
-	Users []GetUserResponse `json:"users"`
+	Users []*GetUserResponse `json:"users"`
 }

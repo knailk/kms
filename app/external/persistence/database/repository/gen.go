@@ -20,6 +20,7 @@ var (
 	ChatMessage     *chatMessage
 	ChatParticipant *chatParticipant
 	ChatSession     *chatSession
+	CheckInOut      *checkInOut
 	User            *user
 )
 
@@ -28,6 +29,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	ChatMessage = &Q.ChatMessage
 	ChatParticipant = &Q.ChatParticipant
 	ChatSession = &Q.ChatSession
+	CheckInOut = &Q.CheckInOut
 	User = &Q.User
 }
 
@@ -37,6 +39,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		ChatMessage:     newChatMessage(db, opts...),
 		ChatParticipant: newChatParticipant(db, opts...),
 		ChatSession:     newChatSession(db, opts...),
+		CheckInOut:      newCheckInOut(db, opts...),
 		User:            newUser(db, opts...),
 	}
 }
@@ -47,6 +50,7 @@ type Query struct {
 	ChatMessage     chatMessage
 	ChatParticipant chatParticipant
 	ChatSession     chatSession
+	CheckInOut      checkInOut
 	User            user
 }
 
@@ -58,6 +62,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		ChatMessage:     q.ChatMessage.clone(db),
 		ChatParticipant: q.ChatParticipant.clone(db),
 		ChatSession:     q.ChatSession.clone(db),
+		CheckInOut:      q.CheckInOut.clone(db),
 		User:            q.User.clone(db),
 	}
 }
@@ -76,6 +81,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		ChatMessage:     q.ChatMessage.replaceDB(db),
 		ChatParticipant: q.ChatParticipant.replaceDB(db),
 		ChatSession:     q.ChatSession.replaceDB(db),
+		CheckInOut:      q.CheckInOut.replaceDB(db),
 		User:            q.User.replaceDB(db),
 	}
 }
@@ -84,6 +90,7 @@ type queryCtx struct {
 	ChatMessage     IChatMessageDo
 	ChatParticipant IChatParticipantDo
 	ChatSession     IChatSessionDo
+	CheckInOut      ICheckInOutDo
 	User            IUserDo
 }
 
@@ -92,6 +99,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		ChatMessage:     q.ChatMessage.WithContext(ctx),
 		ChatParticipant: q.ChatParticipant.WithContext(ctx),
 		ChatSession:     q.ChatSession.WithContext(ctx),
+		CheckInOut:      q.CheckInOut.WithContext(ctx),
 		User:            q.User.WithContext(ctx),
 	}
 }

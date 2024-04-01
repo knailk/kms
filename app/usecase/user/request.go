@@ -36,5 +36,5 @@ func (r *UpdateUserRequest) Validate() errs.Kind {
 }
 
 type SearchUserRequest struct {
-	Keyword string `json:"keyword"`
+	Keyword string `form:"keyword"`
 }

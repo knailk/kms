@@ -160,6 +160,7 @@ func autoMigrate(db *gorm.DB) {
 	execLines := []string{
 		`CREATE TYPE "UserRole" AS ENUM ('admin', 'student', 'teacher', 'chef', 'driver');`,
 		`CREATE TYPE "MessageType" AS ENUM ('text', 'image', 'video', 'audio', 'file', 'link', 'voice', 'sticker');`,
+		`CREATE TYPE "CheckInOutAction" AS ENUM ('check_in', 'check_out');`,
 	}
 	for _, line := range execLines {
 		db.Debug().Exec(line)
@@ -171,5 +172,6 @@ func autoMigrate(db *gorm.DB) {
 		entity.ChatSession{},
 		entity.ChatParticipant{},
 		entity.ChatMessage{},
+		entity.CheckInOut{},
 	)
 }

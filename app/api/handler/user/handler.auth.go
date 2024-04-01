@@ -60,3 +60,23 @@ func (h *handler) UpdateUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, res)
 }
+
+func (h *handler) SearchUser(ctx *gin.Context) {
+	const op errs.Op = "handler.auth.SearchUser"
+
+	var req user.SearchUserRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		msg := "bind query error: " + err.Error()
+		logger.Error(msg)
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
+		return
+	}
+
+	res, err := h.uc.SearchUser(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}

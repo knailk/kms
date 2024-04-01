@@ -96,14 +96,6 @@ func (uc *useCase) SearchUser(ctx context.Context, req *SearchUserRequest) (*Sea
 	}
 
 	return &SearchUserResponse{
-		Username:    users.Username,
-		Email:       users.Email,
-		Role:        string(users.Role),
-		FullName:    users.FullName,
-		Gender:      users.Gender,
-		PhoneNumber: users.PhoneNumber,
-		BirthDate:   users.BirthDate,
-		PictureURL:  users.PictureURL,
-		Address:     users.Address,
+		Users: toUsers(users),
 	}, nil
 }
