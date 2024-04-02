@@ -22,7 +22,7 @@ func (c *CreateChatRequest) Validate() errs.Kind {
 
 type AddMemberRequest struct {
 	Adder         string    `json:"-"`
-	UserID        string    `json:"user_id"`
+	Username      string    `json:"username"`
 	ChatSessionID uuid.UUID `json:"chat_id"`
 }
 

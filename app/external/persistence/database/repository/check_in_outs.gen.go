@@ -29,9 +29,9 @@ func newCheckInOut(db *gorm.DB, opts ...gen.DOOption) checkInOut {
 	_checkInOut.ALL = field.NewAsterisk(tableName)
 	_checkInOut.ID = field.NewField(tableName, "id")
 	_checkInOut.ClassID = field.NewField(tableName, "class_id")
-	_checkInOut.UserID = field.NewString(tableName, "user_id")
+	_checkInOut.Username = field.NewString(tableName, "username")
 	_checkInOut.Action = field.NewString(tableName, "action")
-	_checkInOut.Time = field.NewTime(tableName, "time")
+	_checkInOut.Date = field.NewInt64(tableName, "date")
 	_checkInOut.CreatedAt = field.NewTime(tableName, "created_at")
 	_checkInOut.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -46,9 +46,9 @@ type checkInOut struct {
 	ALL       field.Asterisk
 	ID        field.Field
 	ClassID   field.Field
-	UserID    field.String
+	Username  field.String
 	Action    field.String
-	Time      field.Time
+	Date      field.Int64
 	CreatedAt field.Time
 	UpdatedAt field.Time
 
@@ -69,9 +69,9 @@ func (c *checkInOut) updateTableName(table string) *checkInOut {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewField(table, "id")
 	c.ClassID = field.NewField(table, "class_id")
-	c.UserID = field.NewString(table, "user_id")
+	c.Username = field.NewString(table, "username")
 	c.Action = field.NewString(table, "action")
-	c.Time = field.NewTime(table, "time")
+	c.Date = field.NewInt64(table, "date")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -93,9 +93,9 @@ func (c *checkInOut) fillFieldMap() {
 	c.fieldMap = make(map[string]field.Expr, 7)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["class_id"] = c.ClassID
-	c.fieldMap["user_id"] = c.UserID
+	c.fieldMap["username"] = c.Username
 	c.fieldMap["action"] = c.Action
-	c.fieldMap["time"] = c.Time
+	c.fieldMap["date"] = c.Date
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 }

@@ -10,10 +10,10 @@ import (
 type ChatParticipant struct {
 	ID            uuid.UUID `gorm:"primaryKey"`
 	ChatSessionID uuid.UUID
-	UserID        string
+	Username      string
 	IsOwner       bool
 	CreatedAt     time.Time
 	IsDeleted     soft_delete.DeletedAt `gorm:"softDelete:flag"`
 
-	User User `gorm:"foreignKey:UserID"`
+	User User `gorm:"foreignKey:Username"`
 }

@@ -29,11 +29,11 @@ func newChatParticipant(db *gorm.DB, opts ...gen.DOOption) chatParticipant {
 	_chatParticipant.ALL = field.NewAsterisk(tableName)
 	_chatParticipant.ID = field.NewField(tableName, "id")
 	_chatParticipant.ChatSessionID = field.NewField(tableName, "chat_session_id")
-	_chatParticipant.UserID = field.NewString(tableName, "user_id")
+	_chatParticipant.Username = field.NewString(tableName, "username")
 	_chatParticipant.IsOwner = field.NewBool(tableName, "is_owner")
 	_chatParticipant.CreatedAt = field.NewTime(tableName, "created_at")
 	_chatParticipant.IsDeleted = field.NewUint(tableName, "is_deleted")
-	_chatParticipant.User = chatParticipantBelongsToUser{
+	_chatParticipant.User = chatParticipantHasOneUser{
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("User", "entity.User"),
@@ -50,11 +50,11 @@ type chatParticipant struct {
 	ALL           field.Asterisk
 	ID            field.Field
 	ChatSessionID field.Field
-	UserID        field.String
+	Username      field.String
 	IsOwner       field.Bool
 	CreatedAt     field.Time
 	IsDeleted     field.Uint
-	User          chatParticipantBelongsToUser
+	User          chatParticipantHasOneUser
 
 	fieldMap map[string]field.Expr
 }
@@ -73,7 +73,7 @@ func (c *chatParticipant) updateTableName(table string) *chatParticipant {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewField(table, "id")
 	c.ChatSessionID = field.NewField(table, "chat_session_id")
-	c.UserID = field.NewString(table, "user_id")
+	c.Username = field.NewString(table, "username")
 	c.IsOwner = field.NewBool(table, "is_owner")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.IsDeleted = field.NewUint(table, "is_deleted")
@@ -96,7 +96,7 @@ func (c *chatParticipant) fillFieldMap() {
 	c.fieldMap = make(map[string]field.Expr, 7)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["chat_session_id"] = c.ChatSessionID
-	c.fieldMap["user_id"] = c.UserID
+	c.fieldMap["username"] = c.Username
 	c.fieldMap["is_owner"] = c.IsOwner
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["is_deleted"] = c.IsDeleted
@@ -113,13 +113,13 @@ func (c chatParticipant) replaceDB(db *gorm.DB) chatParticipant {
 	return c
 }
 
-type chatParticipantBelongsToUser struct {
+type chatParticipantHasOneUser struct {
 	db *gorm.DB
 
 	field.RelationField
 }
 
-func (a chatParticipantBelongsToUser) Where(conds ...field.Expr) *chatParticipantBelongsToUser {
+func (a chatParticipantHasOneUser) Where(conds ...field.Expr) *chatParticipantHasOneUser {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -132,27 +132,27 @@ func (a chatParticipantBelongsToUser) Where(conds ...field.Expr) *chatParticipan
 	return &a
 }
 
-func (a chatParticipantBelongsToUser) WithContext(ctx context.Context) *chatParticipantBelongsToUser {
+func (a chatParticipantHasOneUser) WithContext(ctx context.Context) *chatParticipantHasOneUser {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a chatParticipantBelongsToUser) Session(session *gorm.Session) *chatParticipantBelongsToUser {
+func (a chatParticipantHasOneUser) Session(session *gorm.Session) *chatParticipantHasOneUser {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a chatParticipantBelongsToUser) Model(m *entity.ChatParticipant) *chatParticipantBelongsToUserTx {
-	return &chatParticipantBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+func (a chatParticipantHasOneUser) Model(m *entity.ChatParticipant) *chatParticipantHasOneUserTx {
+	return &chatParticipantHasOneUserTx{a.db.Model(m).Association(a.Name())}
 }
 
-type chatParticipantBelongsToUserTx struct{ tx *gorm.Association }
+type chatParticipantHasOneUserTx struct{ tx *gorm.Association }
 
-func (a chatParticipantBelongsToUserTx) Find() (result *entity.User, err error) {
+func (a chatParticipantHasOneUserTx) Find() (result *entity.User, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a chatParticipantBelongsToUserTx) Append(values ...*entity.User) (err error) {
+func (a chatParticipantHasOneUserTx) Append(values ...*entity.User) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -160,7 +160,7 @@ func (a chatParticipantBelongsToUserTx) Append(values ...*entity.User) (err erro
 	return a.tx.Append(targetValues...)
 }
 
-func (a chatParticipantBelongsToUserTx) Replace(values ...*entity.User) (err error) {
+func (a chatParticipantHasOneUserTx) Replace(values ...*entity.User) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -168,7 +168,7 @@ func (a chatParticipantBelongsToUserTx) Replace(values ...*entity.User) (err err
 	return a.tx.Replace(targetValues...)
 }
 
-func (a chatParticipantBelongsToUserTx) Delete(values ...*entity.User) (err error) {
+func (a chatParticipantHasOneUserTx) Delete(values ...*entity.User) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -176,11 +176,11 @@ func (a chatParticipantBelongsToUserTx) Delete(values ...*entity.User) (err erro
 	return a.tx.Delete(targetValues...)
 }
 
-func (a chatParticipantBelongsToUserTx) Clear() error {
+func (a chatParticipantHasOneUserTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a chatParticipantBelongsToUserTx) Count() int64 {
+func (a chatParticipantHasOneUserTx) Count() int64 {
 	return a.tx.Count()
 }
 

@@ -42,14 +42,14 @@ func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*Cre
 		participants = append(participants, entity.ChatParticipant{
 			ID:            uuid.New(),
 			ChatSessionID: chatSessionID,
-			UserID:        user.Username,
+			Username:      user.Username,
 		})
 	}
 
 	participants = append(participants, entity.ChatParticipant{
 		ID:            uuid.New(),
 		ChatSessionID: chatSessionID,
-		UserID:        req.Owner,
+		Username:      req.Owner,
 		IsOwner:       true,
 	})
 
@@ -80,13 +80,13 @@ func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMe
 	if len(chatSession.ChatParticipants) >= 3 {
 		err = uc.repo.ChatParticipant.Clauses(
 			clause.OnConflict{
-				Columns:   []clause.Column{{Name: "user_id"}, {Name: "chat_session_id"}},
+				Columns:   []clause.Column{{Name: "username"}, {Name: "chat_session_id"}},
 				DoNothing: true,
 			},
 		).Create(&entity.ChatParticipant{
 			ID:            uuid.New(),
 			ChatSessionID: req.ChatSessionID,
-			UserID:        req.UserID,
+			Username:      req.Username,
 			IsOwner:       false,
 		})
 		if err != nil {
@@ -96,10 +96,10 @@ func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMe
 	} else {
 		participants := make([]string, len(chatSession.ChatParticipants))
 		for _, p := range chatSession.ChatParticipants {
-			if p.UserID == req.Adder {
+			if p.Username == req.Adder {
 				continue
 			}
-			participants = append(participants, p.UserID)
+			participants = append(participants, p.Username)
 		}
 
 		uc.CreateChat(ctx, &CreateChatRequest{
@@ -119,7 +119,7 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 		LeftJoin(
 			uc.repo.ChatParticipant,
 			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
-		Where(uc.repo.ChatParticipant.UserID.Eq(req.UserRequester)).
+		Where(uc.repo.ChatParticipant.Username.Eq(req.UserRequester)).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
 		Find()
@@ -141,7 +141,7 @@ func (uc *useCase) GetChat(ctx context.Context, req *GetChatRequest) (*GetChatRe
 			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
 		Where(
 			uc.repo.ChatSession.ID.Eq(req.ChatSessionID),
-			uc.repo.ChatParticipant.UserID.Eq(req.UserRequester),
+			uc.repo.ChatParticipant.Username.Eq(req.UserRequester),
 		).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
@@ -186,7 +186,7 @@ func (uc *useCase) CreateMessage(ctx context.Context, req *CreateMessageRequest)
 		return nil, errs.E(op, errKind, "validate request error")
 	}
 
-	count, err := uc.repo.ChatParticipant.Where(uc.repo.ChatParticipant.ChatSessionID.Eq(req.ChatSessionID), uc.repo.ChatParticipant.UserID.Eq(req.Sender)).Count()
+	count, err := uc.repo.ChatParticipant.Where(uc.repo.ChatParticipant.ChatSessionID.Eq(req.ChatSessionID), uc.repo.ChatParticipant.Username.Eq(req.Sender)).Count()
 	if err != nil {
 		logger.Error(op, " get participant error :", err)
 		return nil, errs.E(op, errs.Database, err)

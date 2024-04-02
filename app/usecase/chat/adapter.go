@@ -19,7 +19,7 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 	if len(chatSession.ChatParticipants) > 2 {
 		chatName = chatSession.Name
 	} else {
-		if chatSession.ChatParticipants[0].UserID == userRequester {
+		if chatSession.ChatParticipants[0].Username == userRequester {
 			chatName = chatSession.ChatParticipants[1].User.FullName
 		} else {
 			chatName = chatSession.ChatParticipants[0].User.FullName
@@ -28,7 +28,7 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 
 	mapParticipants := make(map[string]entity.ChatParticipant)
 	for _, p := range chatSession.ChatParticipants {
-		mapParticipants[p.UserID] = p
+		mapParticipants[p.Username] = p
 	}
 
 	messages := make([]*MessageResponse, 0)

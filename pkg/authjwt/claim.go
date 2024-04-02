@@ -6,6 +6,6 @@ import "github.com/google/uuid"
 type AuthClaims struct {
 	UID      uuid.UUID `json:"uid,omitempty"`
 	Role     string    `json:"role,omitempty"`
-	Username string    `json:"user_id,omitempty"`
+	Username string    `json:"username,omitempty"`
 	Email    string    `json:"email,omitempty"`
 }

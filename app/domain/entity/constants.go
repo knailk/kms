@@ -4,6 +4,8 @@ var UserType string
 
 const CtxAuthenticatedUserKey string = "CtxAuthenticatedUserKey"
 
+const TimeZone string = "Asia/Ho_Chi_Minh"
+
 const (
 	UserTypeAdmin   = "admin"
 	UserTypeStudent = "student"
