@@ -8,7 +8,6 @@ import (
 
 type CheckInOut struct {
 	ID       uuid.UUID        `gorm:"primaryKey"`
-	ClassID  uuid.UUID        `gorm:"index"`
 	Username string           `gorm:"index"`
 	Action   CheckInOutAction `gorm:"type:\"CheckInOutAction\""`
 	Date     int64            `gorm:"index"`

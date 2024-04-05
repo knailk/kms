@@ -21,7 +21,10 @@ var (
 	ChatParticipant *chatParticipant
 	ChatSession     *chatSession
 	CheckInOut      *checkInOut
+	Class           *class
+	Schedule        *schedule
 	User            *user
+	UserClass       *userClass
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -30,7 +33,10 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	ChatParticipant = &Q.ChatParticipant
 	ChatSession = &Q.ChatSession
 	CheckInOut = &Q.CheckInOut
+	Class = &Q.Class
+	Schedule = &Q.Schedule
 	User = &Q.User
+	UserClass = &Q.UserClass
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -40,7 +46,10 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		ChatParticipant: newChatParticipant(db, opts...),
 		ChatSession:     newChatSession(db, opts...),
 		CheckInOut:      newCheckInOut(db, opts...),
+		Class:           newClass(db, opts...),
+		Schedule:        newSchedule(db, opts...),
 		User:            newUser(db, opts...),
+		UserClass:       newUserClass(db, opts...),
 	}
 }
 
@@ -51,7 +60,10 @@ type Query struct {
 	ChatParticipant chatParticipant
 	ChatSession     chatSession
 	CheckInOut      checkInOut
+	Class           class
+	Schedule        schedule
 	User            user
+	UserClass       userClass
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -63,7 +75,10 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		ChatParticipant: q.ChatParticipant.clone(db),
 		ChatSession:     q.ChatSession.clone(db),
 		CheckInOut:      q.CheckInOut.clone(db),
+		Class:           q.Class.clone(db),
+		Schedule:        q.Schedule.clone(db),
 		User:            q.User.clone(db),
+		UserClass:       q.UserClass.clone(db),
 	}
 }
 
@@ -82,7 +97,10 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		ChatParticipant: q.ChatParticipant.replaceDB(db),
 		ChatSession:     q.ChatSession.replaceDB(db),
 		CheckInOut:      q.CheckInOut.replaceDB(db),
+		Class:           q.Class.replaceDB(db),
+		Schedule:        q.Schedule.replaceDB(db),
 		User:            q.User.replaceDB(db),
+		UserClass:       q.UserClass.replaceDB(db),
 	}
 }
 
@@ -91,7 +109,10 @@ type queryCtx struct {
 	ChatParticipant IChatParticipantDo
 	ChatSession     IChatSessionDo
 	CheckInOut      ICheckInOutDo
+	Class           IClassDo
+	Schedule        IScheduleDo
 	User            IUserDo
+	UserClass       IUserClassDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -100,7 +121,10 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		ChatParticipant: q.ChatParticipant.WithContext(ctx),
 		ChatSession:     q.ChatSession.WithContext(ctx),
 		CheckInOut:      q.CheckInOut.WithContext(ctx),
+		Class:           q.Class.WithContext(ctx),
+		Schedule:        q.Schedule.WithContext(ctx),
 		User:            q.User.WithContext(ctx),
+		UserClass:       q.UserClass.WithContext(ctx),
 	}
 }
 

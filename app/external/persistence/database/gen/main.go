@@ -23,6 +23,9 @@ func main() {
 		entity.ChatMessage{},
 		entity.ChatParticipant{},
 		entity.ChatSession{},
+		entity.Class{},
+		entity.UserClass{},
+		entity.Schedule{},
 		entity.CheckInOut{},
 	)
 

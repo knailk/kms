@@ -44,7 +44,6 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 		checkInRequests = append(checkInRequests, &entity.CheckInOut{
 			ID:       uuid.New(),
 			Username: user.Username,
-			ClassID:  uuid.New(),
 			Action:   req.Action,
 			Date:     date.AsDate(),
 		})
@@ -59,15 +58,22 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 	return &CheckInOutResponse{}, nil
 }
 
-func (uc *useCase) ListUsersInClass(ctx context.Context, req ListUsersInClassRequest) (ListUsersInClassResponse, error) {
+func (uc *useCase) ListUsersInClass(ctx context.Context, req *ListUsersInClassRequest) (*ListUsersInClassResponse, error) {
 	const op errs.Op = "check_in_out.useCase.ListUsersInClass"
-	users, err := uc.repo.CheckInOut.ListUsersInClass(req.ClassID)
+	users, err := uc.repo.User.
+		LeftJoin(
+			uc.repo.UserClass,
+			uc.repo.User.Username.EqCol(uc.repo.UserClass.Username),
+		).Where(
+		uc.repo.UserClass.ClassID.Eq(req.ClassID),
+		uc.repo.UserClass.Status.Eq("studying"),
+	).Find()
 	if err != nil {
 		logger.Error(op, " get users errors ", err)
-		return ListUsersInClassResponse{}, errs.E(op, errs.Database, err)
+		return nil, errs.E(op, errs.Database, err)
 	}
 
-	return ListUsersInClassResponse{
-		Users: users,
+	return &ListUsersInClassResponse{
+		Users: toUsersInClass(users),
 	}, nil
 }

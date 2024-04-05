@@ -28,7 +28,6 @@ func newCheckInOut(db *gorm.DB, opts ...gen.DOOption) checkInOut {
 	tableName := _checkInOut.checkInOutDo.TableName()
 	_checkInOut.ALL = field.NewAsterisk(tableName)
 	_checkInOut.ID = field.NewField(tableName, "id")
-	_checkInOut.ClassID = field.NewField(tableName, "class_id")
 	_checkInOut.Username = field.NewString(tableName, "username")
 	_checkInOut.Action = field.NewString(tableName, "action")
 	_checkInOut.Date = field.NewInt64(tableName, "date")
@@ -45,7 +44,6 @@ type checkInOut struct {
 
 	ALL       field.Asterisk
 	ID        field.Field
-	ClassID   field.Field
 	Username  field.String
 	Action    field.String
 	Date      field.Int64
@@ -68,7 +66,6 @@ func (c checkInOut) As(alias string) *checkInOut {
 func (c *checkInOut) updateTableName(table string) *checkInOut {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewField(table, "id")
-	c.ClassID = field.NewField(table, "class_id")
 	c.Username = field.NewString(table, "username")
 	c.Action = field.NewString(table, "action")
 	c.Date = field.NewInt64(table, "date")
@@ -90,9 +87,8 @@ func (c *checkInOut) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *checkInOut) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 7)
+	c.fieldMap = make(map[string]field.Expr, 6)
 	c.fieldMap["id"] = c.ID
-	c.fieldMap["class_id"] = c.ClassID
 	c.fieldMap["username"] = c.Username
 	c.fieldMap["action"] = c.Action
 	c.fieldMap["date"] = c.Date
