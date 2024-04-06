@@ -14,6 +14,8 @@ type Class struct {
 	ToDate    int64
 	ClassName string
 	AgeGroup  int
+	Price     float64
+	Currency  string // VND, USD, EUR, ...
 
 	Schedules []Schedule `gorm:"foreignKey:ClassID"`
 

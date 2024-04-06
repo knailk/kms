@@ -60,11 +60,13 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 
 func (uc *useCase) ListUsersInClass(ctx context.Context, req *ListUsersInClassRequest) (*ListUsersInClassResponse, error) {
 	const op errs.Op = "check_in_out.useCase.ListUsersInClass"
-	users, err := uc.repo.User.
-		LeftJoin(
-			uc.repo.UserClass,
-			uc.repo.User.Username.EqCol(uc.repo.UserClass.Username),
-		).Where(
+	users, err := uc.repo.User.Select(
+		uc.repo.User.Username,
+		uc.repo.User.FullName,
+	).LeftJoin(
+		uc.repo.UserClass,
+		uc.repo.User.Username.EqCol(uc.repo.UserClass.Username),
+	).Where(
 		uc.repo.UserClass.ClassID.Eq(req.ClassID),
 		uc.repo.UserClass.Status.Eq("studying"),
 	).Find()
