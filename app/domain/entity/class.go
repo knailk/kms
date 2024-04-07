@@ -19,6 +19,8 @@ type Class struct {
 
 	Schedules []Schedule `gorm:"foreignKey:ClassID"`
 
+	User []UserClass `gorm:"foreignKey:ClassID"`
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

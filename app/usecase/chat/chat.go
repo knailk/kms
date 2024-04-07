@@ -115,6 +115,8 @@ func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMe
 
 func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error) {
 	const op errs.Op = "useCase.chat.ListChats"
+	var chatSessions []*entity.ChatSession
+
 	chatSessions, err := uc.repo.ChatSession.
 		LeftJoin(
 			uc.repo.ChatParticipant,
@@ -122,6 +124,7 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 		Where(uc.repo.ChatParticipant.Username.Eq(req.UserRequester)).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
+		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc()).Limit(1)).
 		Find()
 	if err != nil {
 		logger.Error(op, " get chat session error :", err)
@@ -145,7 +148,7 @@ func (uc *useCase) GetChat(ctx context.Context, req *GetChatRequest) (*GetChatRe
 		).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
-		Preload(uc.repo.ChatSession.ChatMessages).
+		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc())).
 		First()
 	if err != nil {
 		logger.Error(op, " get chat session error :", err)

@@ -32,7 +32,6 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 	}
 
 	messages := make([]*MessageResponse, 0)
-
 	for _, m := range chatSession.ChatMessages {
 		messages = append(messages, &MessageResponse{
 			ID:         m.ID,
@@ -45,11 +44,17 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 		})
 	}
 
+	var latestMessage *MessageResponse
+	if len(messages) > 0 {
+		latestMessage = messages[0]
+	}
+
 	return &GetChatResponse{
-		ID:           chatSession.ID,
-		Name:         chatName,
-		ChatMessages: messages,
-		CreatedAt:    chatSession.CreatedAt,
+		ID:            chatSession.ID,
+		Name:          chatName,
+		ChatMessages:  messages,
+		LatestMessage: latestMessage,
+		CreatedAt:     chatSession.CreatedAt,
 	}
 }
 
