@@ -23,7 +23,7 @@ func NewHandler(uc user.IUseCase, base base.AuthCookieHandler) *handler {
 }
 
 func (h *handler) GetProfile(ctx *gin.Context) {
-	const op errs.Op = "handler.auth.GetInfo"
+	const op errs.Op = "handler.user.GetProfile"
 
 	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
 
@@ -37,7 +37,7 @@ func (h *handler) GetProfile(ctx *gin.Context) {
 }
 
 func (h *handler) UpdateUser(ctx *gin.Context) {
-	const op errs.Op = "handler.auth.UpdateUser"
+	const op errs.Op = "handler.user.UpdateUser"
 
 	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
 
@@ -62,7 +62,7 @@ func (h *handler) UpdateUser(ctx *gin.Context) {
 }
 
 func (h *handler) SearchUser(ctx *gin.Context) {
-	const op errs.Op = "handler.auth.SearchUser"
+	const op errs.Op = "handler.user.SearchUser"
 
 	var req user.SearchUserRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {

@@ -12,6 +12,7 @@ const (
 	UserTypeTeacher = "teacher"
 	UserTypeDriver  = "driver"
 	UserTypeChef    = "chef"
+	UserTypeCommon  = "common"
 )
 
 const (

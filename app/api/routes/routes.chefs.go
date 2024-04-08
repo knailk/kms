@@ -15,11 +15,10 @@ func newChefRoute(
 	ctx context.Context,
 	router *gin.Engine,
 	provider *registry.Provider,
+	authCookie base.AuthCookieHandler,
 ) {
 	apiV1Group := router.Group(apiChefV1)
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeChef))
-
-	authCookie := base.NewAuthCookieHandler(provider.Config.Env, entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
 
 	// auth handler
 	authHdl := auth.NewHandler(

@@ -29,9 +29,10 @@ func newSchedule(db *gorm.DB, opts ...gen.DOOption) schedule {
 	_schedule.ALL = field.NewAsterisk(tableName)
 	_schedule.ID = field.NewField(tableName, "id")
 	_schedule.ClassID = field.NewField(tableName, "class_id")
-	_schedule.FromDate = field.NewInt64(tableName, "from_date")
-	_schedule.ToDate = field.NewInt64(tableName, "to_date")
-	_schedule.Rules = field.NewField(tableName, "rules")
+	_schedule.FromTime = field.NewTime(tableName, "from_time")
+	_schedule.ToTime = field.NewTime(tableName, "to_time")
+	_schedule.Action = field.NewString(tableName, "action")
+	_schedule.Date = field.NewInt64(tableName, "date")
 	_schedule.CreatedAt = field.NewTime(tableName, "created_at")
 	_schedule.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -46,9 +47,10 @@ type schedule struct {
 	ALL       field.Asterisk
 	ID        field.Field
 	ClassID   field.Field
-	FromDate  field.Int64
-	ToDate    field.Int64
-	Rules     field.Field
+	FromTime  field.Time
+	ToTime    field.Time
+	Action    field.String
+	Date      field.Int64
 	CreatedAt field.Time
 	UpdatedAt field.Time
 
@@ -69,9 +71,10 @@ func (s *schedule) updateTableName(table string) *schedule {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewField(table, "id")
 	s.ClassID = field.NewField(table, "class_id")
-	s.FromDate = field.NewInt64(table, "from_date")
-	s.ToDate = field.NewInt64(table, "to_date")
-	s.Rules = field.NewField(table, "rules")
+	s.FromTime = field.NewTime(table, "from_time")
+	s.ToTime = field.NewTime(table, "to_time")
+	s.Action = field.NewString(table, "action")
+	s.Date = field.NewInt64(table, "date")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -90,12 +93,13 @@ func (s *schedule) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (s *schedule) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 7)
+	s.fieldMap = make(map[string]field.Expr, 8)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["class_id"] = s.ClassID
-	s.fieldMap["from_date"] = s.FromDate
-	s.fieldMap["to_date"] = s.ToDate
-	s.fieldMap["rules"] = s.Rules
+	s.fieldMap["from_time"] = s.FromTime
+	s.fieldMap["to_time"] = s.ToTime
+	s.fieldMap["action"] = s.Action
+	s.fieldMap["date"] = s.Date
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 }

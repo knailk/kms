@@ -34,12 +34,20 @@ func newClass(db *gorm.DB, opts ...gen.DOOption) class {
 	_class.ToDate = field.NewInt64(tableName, "to_date")
 	_class.ClassName = field.NewString(tableName, "class_name")
 	_class.AgeGroup = field.NewInt(tableName, "age_group")
+	_class.Price = field.NewFloat64(tableName, "price")
+	_class.Currency = field.NewString(tableName, "currency")
 	_class.CreatedAt = field.NewTime(tableName, "created_at")
 	_class.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_class.Schedules = classHasManySchedules{
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("Schedules", "entity.Schedule"),
+	}
+
+	_class.User = classHasManyUser{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("User", "entity.UserClass"),
 	}
 
 	_class.fillFieldMap()
@@ -58,9 +66,13 @@ type class struct {
 	ToDate    field.Int64
 	ClassName field.String
 	AgeGroup  field.Int
+	Price     field.Float64
+	Currency  field.String
 	CreatedAt field.Time
 	UpdatedAt field.Time
 	Schedules classHasManySchedules
+
+	User classHasManyUser
 
 	fieldMap map[string]field.Expr
 }
@@ -84,6 +96,8 @@ func (c *class) updateTableName(table string) *class {
 	c.ToDate = field.NewInt64(table, "to_date")
 	c.ClassName = field.NewString(table, "class_name")
 	c.AgeGroup = field.NewInt(table, "age_group")
+	c.Price = field.NewFloat64(table, "price")
+	c.Currency = field.NewString(table, "currency")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -102,7 +116,7 @@ func (c *class) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *class) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 10)
+	c.fieldMap = make(map[string]field.Expr, 13)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["teacher_id"] = c.TeacherID
 	c.fieldMap["driver_id"] = c.DriverID
@@ -110,6 +124,8 @@ func (c *class) fillFieldMap() {
 	c.fieldMap["to_date"] = c.ToDate
 	c.fieldMap["class_name"] = c.ClassName
 	c.fieldMap["age_group"] = c.AgeGroup
+	c.fieldMap["price"] = c.Price
+	c.fieldMap["currency"] = c.Currency
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 
@@ -193,6 +209,77 @@ func (a classHasManySchedulesTx) Clear() error {
 }
 
 func (a classHasManySchedulesTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type classHasManyUser struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a classHasManyUser) Where(conds ...field.Expr) *classHasManyUser {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a classHasManyUser) WithContext(ctx context.Context) *classHasManyUser {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a classHasManyUser) Session(session *gorm.Session) *classHasManyUser {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a classHasManyUser) Model(m *entity.Class) *classHasManyUserTx {
+	return &classHasManyUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+type classHasManyUserTx struct{ tx *gorm.Association }
+
+func (a classHasManyUserTx) Find() (result []*entity.UserClass, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a classHasManyUserTx) Append(values ...*entity.UserClass) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a classHasManyUserTx) Replace(values ...*entity.UserClass) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a classHasManyUserTx) Delete(values ...*entity.UserClass) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a classHasManyUserTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a classHasManyUserTx) Count() int64 {
 	return a.tx.Count()
 }
 

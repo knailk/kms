@@ -2,7 +2,9 @@ package routes
 
 import (
 	"context"
+	"kms/app/api/handler/base"
 	"kms/app/config"
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	mdlwCORS "kms/app/middleware/cors"
 	mdlwRecovery "kms/app/middleware/recovery"
@@ -46,6 +48,47 @@ func NewGinRouter(ctx context.Context, cfg *config.Config, tasks *shutdown.Tasks
 	return router
 }
 
+func initRoutes(
+	ctx context.Context,
+	router *gin.Engine,
+	cfg *config.Config,
+	provider *registry.Provider,
+) {
+	// Base routes
+	router.GET(apiHealthPath, healthz)
+
+	// route not found
+	router.NoRoute(func(ctx *gin.Context) {
+		logger.Error(errs.RouteNotFound.String())
+		errs.HTTPErrorResponse(ctx, errs.E(errs.Op("NoRoute"), errs.RouteNotFound, "route not found"))
+	})
+
+	authCookie := base.NewAuthCookieHandler(provider.Config.Env, entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
+
+	newCommonRoute(ctx, router, provider, authCookie)
+
+	newStudentRoute(ctx, router, provider, authCookie)
+
+	newTeacherRoute(ctx, router, provider, authCookie)
+
+	newDriverRoute(ctx, router, provider, authCookie)
+
+	newChefRoute(ctx, router, provider, authCookie)
+
+	// Init swagger routes
+	if cfg.Env == config.EnvLocal || cfg.Env == config.EnvDevelopment {
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
+}
+
+// healthz for checking service status
+func healthz(c *gin.Context) {
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"status":  true,
+		"message": "welcome to an kms api",
+	})
+}
+
 func initMiddlewares(router *gin.Engine, cfg *config.Config) {
 	var middlewares []gin.HandlerFunc
 
@@ -69,43 +112,4 @@ func initMiddlewares(router *gin.Engine, cfg *config.Config) {
 	middlewares = append(middlewares, mdlwCORS.CORS(cfg))
 
 	router.Use(middlewares...)
-}
-
-func initRoutes(
-	ctx context.Context,
-	router *gin.Engine,
-	cfg *config.Config,
-	provider *registry.Provider,
-) {
-	// Base routes
-	router.GET(apiHealthPath, healthz)
-
-	// route not found
-	router.NoRoute(func(ctx *gin.Context) {
-		logger.Error(errs.RouteNotFound.String())
-		errs.HTTPErrorResponse(ctx, errs.E(errs.Op("NoRoute"), errs.RouteNotFound, "route not found"))
-	})
-
-	newCommonRoute(ctx, router, provider)
-
-	newStudentRoute(ctx, router, provider)
-
-	newTeacherRoute(ctx, router, provider)
-
-	newDriverRoute(ctx, router, provider)
-
-	newChefRoute(ctx, router, provider)
-
-	// Init swagger routes
-	if cfg.Env == config.EnvLocal || cfg.Env == config.EnvDevelopment {
-		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	}
-}
-
-// healthz for checking service status
-func healthz(c *gin.Context) {
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"status":  true,
-		"message": "welcome to an kms api",
-	})
 }

@@ -75,23 +75,16 @@ func (uc *useCase) GetClass(ctx context.Context, req *GetClassRequest) (*GetClas
 		filter = append(filter, uc.repo.Class.ClassName.Eq(req.ClassName))
 	}
 
-	class, err := uc.repo.Class.Where(filter...).First()
+	class, err := uc.repo.Class.Where(filter...).
+		Preload(uc.repo.Class.Schedules.On(
+			uc.repo.Schedule.Date.Between(req.FromDate, req.ToDate))).
+		First()
 	if err != nil {
 		logger.Error(op, " get class error: ", err)
 		return nil, errs.E(op, errs.Database, "get class error")
 	}
 
-	return &GetClassResponse{
-		ID:        class.ID,
-		TeacherID: class.TeacherID,
-		DriverID:  class.DriverID,
-		FromDate:  class.FromDate,
-		ToDate:    class.ToDate,
-		ClassName: class.ClassName,
-		AgeGroup:  class.AgeGroup,
-		Price:     class.Price,
-		Currency:  class.Currency,
-	}, nil
+	return toGetClassResponse(class), nil
 }
 
 func (uc *useCase) UpdateClass(ctx context.Context, req *UpdateClassRequest) (*UpdateClassResponse, error) {
@@ -99,9 +92,47 @@ func (uc *useCase) UpdateClass(ctx context.Context, req *UpdateClassRequest) (*U
 }
 
 func (uc *useCase) ListClasses(ctx context.Context, req *ListClassesRequest) (*ListClassesResponse, error) {
-	return nil, nil
+	const op errs.Op = "class.useCase.ListClasses"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	filter := make([]gen.Condition, 0)
+
+	if req.FromDate > 0 {
+		filter = append(filter, uc.repo.Class.FromDate.Gte(req.FromDate))
+	}
+
+	if req.ToDate > 0 {
+		filter = append(filter, uc.repo.Class.ToDate.Lte(req.ToDate))
+	}
+
+	if req.AgeGroup != 0 {
+		filter = append(filter, uc.repo.Class.AgeGroup.Eq(req.AgeGroup))
+	}
+
+	classes, err := uc.repo.Class.Where(filter...).Limit(req.Limit).Offset((req.Page - 1) * req.Limit).
+		Find()
+	if err != nil {
+		logger.Error(op, " list class error: ", err)
+		return nil, errs.E(op, errs.Database, "list class error")
+	}
+
+	return toListClassesResponse(classes), nil
 }
 
 func (uc *useCase) DeleteClass(ctx context.Context, req *DeleteClassRequest) (*DeleteClassResponse, error) {
+	const op errs.Op = "class.useCase.DeleteClass"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	_, err := uc.repo.Class.Where(uc.repo.Class.ID.Eq(req.ID)).Delete()
+	if err != nil {
+		logger.Error(op, " delete class error: ", err)
+		return nil, errs.E(op, errs.Database, "delete class error")
+	}
 	return nil, nil
 }

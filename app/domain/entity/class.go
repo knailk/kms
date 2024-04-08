@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/plugin/soft_delete"
 )
 
 type Class struct {
@@ -23,4 +24,5 @@ type Class struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	IsDeleted soft_delete.DeletedAt `gorm:"softDelete:flag"`
 }

@@ -2,9 +2,7 @@ package routes
 
 import (
 	"context"
-	"kms/app/api/handler/auth"
 	"kms/app/api/handler/base"
-	"kms/app/api/handler/chat"
 	"kms/app/api/handler/user"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
@@ -17,23 +15,10 @@ func newStudentRoute(
 	ctx context.Context,
 	router *gin.Engine,
 	provider *registry.Provider,
+	authCookie base.AuthCookieHandler,
 ) {
 	apiV1Group := router.Group(apiStudentV1)
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeStudent))
-
-	authCookie := base.NewAuthCookieHandler(provider.Config.Env, entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
-
-	// auth handler
-	authHdl := auth.NewHandler(
-		registry.InjectedAuthUseCase(ctx, provider),
-		authCookie,
-	)
-	V1AuthRoute := apiV1Group.Group("/auth")
-	{
-		V1AuthRoute.POST("/refresh", authHdl.Refresh)
-		V1AuthRoute.POST("/logout", authHdl.Logout)
-		// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)
-	}
 
 	// user handler
 	userHdl := user.NewHandler(
@@ -45,21 +30,5 @@ func newStudentRoute(
 		V1UserRoute.GET("/me", userHdl.GetProfile)
 		V1UserRoute.PUT("/me", userHdl.UpdateUser)
 		V1UserRoute.GET("/", userHdl.SearchUser)
-	}
-
-	// chat handler
-	chatHdl := chat.NewHandler(
-		registry.InjectedChatUseCase(ctx, provider),
-		authCookie,
-	)
-	V1ChatRoute := apiV1Group.Group("/chat")
-	{
-		V1ChatRoute.POST("/", chatHdl.CreateChat)
-		V1ChatRoute.PUT("/member", chatHdl.AddMember)
-		V1ChatRoute.GET("/", chatHdl.ListChats)
-		V1ChatRoute.GET("/:id", chatHdl.GetChat)
-		V1ChatRoute.PUT("/:id", chatHdl.UpdateChat)
-		V1ChatRoute.DELETE("/:id", chatHdl.DeleteChat)
-		V1ChatRoute.POST("/:id/message", chatHdl.CreateMessage)
 	}
 }

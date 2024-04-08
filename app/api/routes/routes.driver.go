@@ -15,11 +15,10 @@ func newDriverRoute(
 	ctx context.Context,
 	router *gin.Engine,
 	provider *registry.Provider,
-) {
+	authCookie base.AuthCookieHandler,
+	) {
 	apiV1Group := router.Group(apiDriverV1)
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeDriver))
-
-	authCookie := base.NewAuthCookieHandler(provider.Config.Env, entity.AccessKey, entity.RefreshKey, entity.CookiePath, entity.CookiePathRefreshToken, entity.CookieHTTPOnly, entity.CookieMaxAge)
 
 	// auth handler
 	authHdl := auth.NewHandler(

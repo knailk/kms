@@ -33,7 +33,7 @@ func (m *AuthMiddleware) Handle(ctx *gin.Context) {
 		return
 	}
 
-	if user.Role != m.role && user.Role != "admin" {
+	if user.Role != m.role && user.Role != entity.UserTypeAdmin && m.role != entity.UserTypeCommon {
 		errs.HTTPErrorResponse(ctx, errs.E(op, errs.Unauthorized, "you don't have access for this action"))
 		return
 	}
