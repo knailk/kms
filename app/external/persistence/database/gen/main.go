@@ -23,10 +23,10 @@ func main() {
 		entity.ChatMessage{},
 		entity.ChatParticipant{},
 		entity.ChatSession{},
-		entity.Class{},
-		entity.UserClass{},
-		entity.Schedule{},
 		entity.CheckInOut{},
+		entity.Class{},
+		entity.Schedule{},
+		entity.UserClass{},
 	)
 
 	// Execute the generator

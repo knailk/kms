@@ -38,6 +38,7 @@ func newClass(db *gorm.DB, opts ...gen.DOOption) class {
 	_class.Currency = field.NewString(tableName, "currency")
 	_class.CreatedAt = field.NewTime(tableName, "created_at")
 	_class.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_class.IsDeleted = field.NewUint(tableName, "is_deleted")
 	_class.Schedules = classHasManySchedules{
 		db: db.Session(&gorm.Session{}),
 
@@ -70,6 +71,7 @@ type class struct {
 	Currency  field.String
 	CreatedAt field.Time
 	UpdatedAt field.Time
+	IsDeleted field.Uint
 	Schedules classHasManySchedules
 
 	User classHasManyUser
@@ -100,6 +102,7 @@ func (c *class) updateTableName(table string) *class {
 	c.Currency = field.NewString(table, "currency")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
+	c.IsDeleted = field.NewUint(table, "is_deleted")
 
 	c.fillFieldMap()
 
@@ -116,7 +119,7 @@ func (c *class) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *class) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 13)
+	c.fieldMap = make(map[string]field.Expr, 14)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["teacher_id"] = c.TeacherID
 	c.fieldMap["driver_id"] = c.DriverID
@@ -128,6 +131,7 @@ func (c *class) fillFieldMap() {
 	c.fieldMap["currency"] = c.Currency
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
+	c.fieldMap["is_deleted"] = c.IsDeleted
 
 }
 

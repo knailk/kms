@@ -31,6 +31,7 @@ func newCheckInOut(db *gorm.DB, opts ...gen.DOOption) checkInOut {
 	_checkInOut.Username = field.NewString(tableName, "username")
 	_checkInOut.Action = field.NewString(tableName, "action")
 	_checkInOut.Date = field.NewInt64(tableName, "date")
+	_checkInOut.ClassID = field.NewField(tableName, "class_id")
 	_checkInOut.CreatedAt = field.NewTime(tableName, "created_at")
 	_checkInOut.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -47,6 +48,7 @@ type checkInOut struct {
 	Username  field.String
 	Action    field.String
 	Date      field.Int64
+	ClassID   field.Field
 	CreatedAt field.Time
 	UpdatedAt field.Time
 
@@ -69,6 +71,7 @@ func (c *checkInOut) updateTableName(table string) *checkInOut {
 	c.Username = field.NewString(table, "username")
 	c.Action = field.NewString(table, "action")
 	c.Date = field.NewInt64(table, "date")
+	c.ClassID = field.NewField(table, "class_id")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -87,11 +90,12 @@ func (c *checkInOut) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *checkInOut) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 6)
+	c.fieldMap = make(map[string]field.Expr, 7)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["username"] = c.Username
 	c.fieldMap["action"] = c.Action
 	c.fieldMap["date"] = c.Date
+	c.fieldMap["class_id"] = c.ClassID
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 }
