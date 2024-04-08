@@ -12,6 +12,7 @@ import (
 	"kms/app/usecase/auth"
 	"kms/app/usecase/user"
 	"kms/app/usecase/chat"
+	"kms/app/usecase/class"
 )
 
 func InjectedAuthUseCase(
@@ -37,3 +38,12 @@ func InjectedChatUseCase(
 	wire.Build(BuilderSet, chat.NewUseCase)
 	return nil
 }
+
+func InjectedClassUseCase(
+	ctx context.Context,
+	provider *Provider,
+) class.IUseCase {
+	wire.Build(BuilderSet, class.NewUseCase)
+	return nil
+}
+

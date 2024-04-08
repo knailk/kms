@@ -37,3 +37,22 @@ type ScheduleResponse struct {
 	Action   string    `json:"action"`
 	Date     int64     `json:"date"`
 }
+
+type CheckInOutResponse struct {
+	Status string `json:"status"`
+}
+
+type ListUsersInClass struct{}
+
+type GetUserInClass struct {
+	Username string `json:"username"`
+	FullName string `json:"fullName"`
+}
+
+type ListMembersInClassResponse struct {
+	Users []*GetUserInClass `json:"users"`
+}
+
+type AddMemberToClassResponse struct{}
+
+type RemoveMembersFromClassResponse struct{}

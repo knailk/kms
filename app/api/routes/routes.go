@@ -27,7 +27,7 @@ const (
 	apiTeacherV1  = "/api/v1/teacher"
 	apiDriverV1   = "/api/v1/driver"
 	apiChefV1     = "/api/v1/chef"
-	// apiAdminV1     = "/api/v1/admin"
+	apiAdminV1     = "/api/v1/admin"
 )
 
 // NewGinRouter initializes a gin-gonic/gin router

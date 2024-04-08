@@ -11,6 +11,7 @@ type CheckInOut struct {
 	Username string           `gorm:"index"`
 	Action   CheckInOutAction `gorm:"type:\"CheckInOutAction\""`
 	Date     int64            `gorm:"index"`
+	ClassID  uuid.UUID        `gorm:"index"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

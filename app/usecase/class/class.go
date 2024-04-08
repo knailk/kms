@@ -5,10 +5,14 @@ import (
 	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/external/persistence/database/repository"
+	"kms/pkg/date"
 	"kms/pkg/logger"
+	"kms/pkg/time_function"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gen"
+	"gorm.io/gorm/clause"
 )
 
 type useCase struct {
@@ -135,4 +139,115 @@ func (uc *useCase) DeleteClass(ctx context.Context, req *DeleteClassRequest) (*D
 		return nil, errs.E(op, errs.Database, "delete class error")
 	}
 	return nil, nil
+}
+
+func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*CheckInOutResponse, error) {
+	const op errs.Op = "class.useCase.CheckInOut"
+	users, err := uc.repo.User.Where(uc.repo.User.Username.In(req.Usernames...)).Find()
+	if err != nil {
+		logger.Error(op, " get users errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	loc, _ := time_function.LoadLocation(entity.TimeZone)
+
+	date, err := date.FromTime(time.Now(), loc)
+	if err != nil {
+		logger.Error(op, " get date errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	checkInRequests := make([]*entity.CheckInOut, 0)
+	for _, user := range users {
+		checkInRequests = append(checkInRequests, &entity.CheckInOut{
+			ID:       uuid.New(),
+			Username: user.Username,
+			Action:   req.Action,
+			Date:     date.AsDate(),
+			ClassID:  req.ClassID,
+		})
+	}
+
+	err = uc.repo.CheckInOut.Create(checkInRequests...)
+	if err != nil {
+		logger.Error(op, " create check in errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &CheckInOutResponse{}, nil
+}
+
+func (uc *useCase) ListMembersInClass(ctx context.Context, req *ListMembersInClassRequest) (*ListMembersInClassResponse, error) {
+	const op errs.Op = "class.useCase.ListUsersInClass"
+	users, err := uc.repo.User.Select(
+		uc.repo.User.Username,
+		uc.repo.User.FullName,
+	).LeftJoin(
+		uc.repo.UserClass,
+		uc.repo.User.Username.EqCol(uc.repo.UserClass.Username),
+	).Where(
+		uc.repo.UserClass.ClassID.Eq(req.ClassID),
+		uc.repo.UserClass.Status.Eq("studying"),
+	).Find()
+	if err != nil {
+		logger.Error(op, " get users errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &ListMembersInClassResponse{
+		Users: toUsersInClass(users),
+	}, nil
+}
+
+func (uc *useCase) AddMembersToClass(ctx context.Context, req *AddMembersToClassRequest) (*AddMemberToClassResponse, error) {
+	const op errs.Op = "class.useCase.AddMembersToClass"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	var usernames []string
+	err := uc.repo.User.Select(uc.repo.User.Username).Where(uc.repo.User.Username.In(req.Usernames...)).Scan(&usernames)
+	if err != nil {
+		logger.Error(op, " get users errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	usersClass := make([]*entity.UserClass, 0)
+	for _, user := range usernames {
+		usersClass = append(usersClass, &entity.UserClass{
+			Username: user,
+			ClassID:  req.ClassID,
+			Status:   string(entity.UserClassStatusJoined),
+		})
+	}
+
+	err = uc.repo.UserClass.Clauses(
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "username"}, {Name: "class_id"}},
+			DoNothing: true,
+		},
+	).Create(usersClass...)
+	if err != nil {
+		logger.Error(op, " create user class errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &AddMemberToClassResponse{}, nil
+}
+
+func (uc *useCase) RemoveMembersFromClass(ctx context.Context, req *RemoveMembersFromClassRequest) (*RemoveMembersFromClassResponse, error) {
+	const op errs.Op = "class.useCase.RemoveMembersFromClass"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	_, err := uc.repo.UserClass.Where(uc.repo.UserClass.Username.In(req.Usernames...)).Update(uc.repo.UserClass.Status, entity.UserClassStatusCancelled)
+	if err != nil {
+		logger.Error(op, " delete user class errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &RemoveMembersFromClassResponse{}, nil
 }

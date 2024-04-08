@@ -5,6 +5,7 @@ import (
 	"kms/app/api/handler/auth"
 	"kms/app/api/handler/base"
 	"kms/app/api/handler/chat"
+	"kms/app/api/handler/class"
 	"kms/app/api/handler/user"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
@@ -67,6 +68,14 @@ func newCommonRoute(
 		V1UserRoute.GET("/", userHdl.SearchUser)
 	}
 
-	// classHdl := class
+	classHdl := class.NewHandler(
+		registry.InjectedClassUseCase(ctx, provider),
+		authCookie,
+	)
+	V1ClassRoute := apiV1Group.Group("/class")
+	{
+		V1ClassRoute.GET("/", classHdl.ListClasses)
+		V1ClassRoute.GET("/:id", classHdl.GetClass)
+	}
 
 }

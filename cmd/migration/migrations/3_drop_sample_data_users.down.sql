@@ -1,1 +1,1 @@
-DELETE FROM users where username in ('admin', 'student', 'chef', 'teacher', 'driver');
+DELETE FROM users;

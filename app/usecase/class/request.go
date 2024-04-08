@@ -1,6 +1,7 @@
 package class
 
 import (
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	"time"
 
@@ -34,7 +35,7 @@ type ScheduleRequest struct {
 }
 
 type GetClassRequest struct {
-	ID        uuid.UUID `form:"id"`
+	ID        uuid.UUID `json:"-"`
 	ClassName string    `form:"className"`
 	FromDate  int64     `form:"fromDate"`
 	ToDate    int64     `form:"toDate"`
@@ -62,7 +63,9 @@ func (l *ListClassesRequest) Validate() errs.Kind {
 	return errs.Other
 }
 
-type UpdateClassRequest struct{}
+type UpdateClassRequest struct {
+	ID uuid.UUID `json:"-"`
+}
 
 type DeleteClassRequest struct {
 	ID uuid.UUID `json:"-"`
@@ -70,6 +73,41 @@ type DeleteClassRequest struct {
 
 func (d *DeleteClassRequest) Validate() errs.Kind {
 	if d.ID == uuid.Nil {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
+type CheckInOutRequest struct {
+	ClassID   uuid.UUID               `json:"-"`
+	Usernames []string                `json:"usernames"`
+	Action    entity.CheckInOutAction `json:"action"`
+}
+
+type ListMembersInClassRequest struct {
+	ClassID   uuid.UUID `json:"classID"`
+	TeacherID string    `json:"teacherID"`
+}
+
+type AddMembersToClassRequest struct {
+	ClassID   uuid.UUID `json:"classID"`
+	Usernames []string  `json:"usernames"`
+}
+
+func (a *AddMembersToClassRequest) Validate() errs.Kind {
+	if a.ClassID == uuid.Nil || len(a.Usernames) == 0 {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
+type RemoveMembersFromClassRequest struct {
+	ClassID   uuid.UUID `json:"classID"`
+	Usernames []string  `json:"usernames"`
+}
+
+func (r *RemoveMembersFromClassRequest) Validate() errs.Kind {
+	if r.ClassID == uuid.Nil || len(r.Usernames) == 0 {
 		return errs.InvalidRequest
 	}
 	return errs.Other

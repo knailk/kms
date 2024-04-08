@@ -11,6 +11,7 @@ import (
 	"kms/app/external/persistence/database/repository"
 	"kms/app/usecase/auth"
 	"kms/app/usecase/chat"
+	"kms/app/usecase/class"
 	"kms/app/usecase/user"
 )
 
@@ -34,5 +35,12 @@ func InjectedChatUseCase(ctx context.Context, provider *Provider) chat.IUseCase 
 	db := provider.DB
 	postgresRepository := repository.NewPostgresRepository(db)
 	iUseCase := chat.NewUseCase(postgresRepository)
+	return iUseCase
+}
+
+func InjectedClassUseCase(ctx context.Context, provider *Provider) class.IUseCase {
+	db := provider.DB
+	postgresRepository := repository.NewPostgresRepository(db)
+	iUseCase := class.NewUseCase(postgresRepository)
 	return iUseCase
 }
