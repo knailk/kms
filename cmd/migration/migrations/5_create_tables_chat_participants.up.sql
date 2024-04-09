@@ -11,4 +11,8 @@ CREATE TABLE IF NOT EXISTS public.chat_participants
         REFERENCES public.chat_sessions (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
-)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "uniqueIndex"
+    ON public.chat_participants USING btree
+    (chat_session_id COLLATE pg_catalog."default" ASC NULLS LAST, username COLLATE pg_catalog."default" ASC NULLS LAST);

@@ -9,8 +9,8 @@ import (
 
 type ChatParticipant struct {
 	ID            uuid.UUID `gorm:"primaryKey"`
-	ChatSessionID uuid.UUID
-	Username      string
+	ChatSessionID uuid.UUID `gorm:"index:uniqueIndex,unique"`
+	Username      string    `gorm:"index:uniqueIndex,unique"`
 	IsOwner       bool
 	CreatedAt     time.Time
 	IsDeleted     soft_delete.DeletedAt `gorm:"softDelete:flag"`
