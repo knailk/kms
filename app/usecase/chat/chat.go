@@ -118,6 +118,9 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 	var chatSessions []*entity.ChatSession
 
 	chatSessions, err := uc.repo.ChatSession.
+		LeftJoin(
+			uc.repo.ChatParticipant,
+			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
 		Where(uc.repo.ChatParticipant.Username.Eq(req.UserRequester)).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
