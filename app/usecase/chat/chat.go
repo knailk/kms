@@ -115,7 +115,6 @@ func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMe
 
 func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error) {
 	const op errs.Op = "useCase.chat.ListChats"
-	var chatSessions []*entity.ChatSession
 
 	chatSessions, err := uc.repo.ChatSession.
 		LeftJoin(
