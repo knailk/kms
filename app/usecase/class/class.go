@@ -75,10 +75,6 @@ func (uc *useCase) GetClass(ctx context.Context, req *GetClassRequest) (*GetClas
 		filter = append(filter, uc.repo.Class.ID.Eq(req.ID))
 	}
 
-	if req.ClassName != "" {
-		filter = append(filter, uc.repo.Class.ClassName.Eq(req.ClassName))
-	}
-
 	class, err := uc.repo.Class.Where(filter...).
 		Preload(uc.repo.Class.Schedules.On(
 			uc.repo.Schedule.Date.Between(req.FromDate, req.ToDate))).
@@ -243,7 +239,12 @@ func (uc *useCase) RemoveMembersFromClass(ctx context.Context, req *RemoveMember
 		return nil, errs.E(op, errKind, "Validate request error")
 	}
 
-	_, err := uc.repo.UserClass.Where(uc.repo.UserClass.Username.In(req.Usernames...)).Update(uc.repo.UserClass.Status, entity.UserClassStatusCancelled)
+	_, err := uc.repo.UserClass.
+		Where(
+			uc.repo.UserClass.Username.In(req.Usernames...),
+			uc.repo.UserClass.ClassID.Eq(req.ClassID),
+		).
+		Update(uc.repo.UserClass.Status, entity.UserClassStatusCancelled)
 	if err != nil {
 		logger.Error(op, " delete user class errors ", err)
 		return nil, errs.E(op, errs.Database, err)

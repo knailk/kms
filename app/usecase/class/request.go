@@ -35,14 +35,13 @@ type ScheduleRequest struct {
 }
 
 type GetClassRequest struct {
-	ID        uuid.UUID `json:"-"`
-	ClassName string    `form:"className"`
-	FromDate  int64     `form:"fromDate"`
-	ToDate    int64     `form:"toDate"`
+	ID       uuid.UUID `form:"-"`
+	FromDate int64     `form:"fromDate"`
+	ToDate   int64     `form:"toDate"`
 }
 
 func (g *GetClassRequest) Validate() errs.Kind {
-	if g.ID == uuid.Nil && g.ClassName == "" {
+	if g.ID == uuid.Nil {
 		return errs.InvalidRequest
 	}
 	return errs.Other
@@ -85,12 +84,11 @@ type CheckInOutRequest struct {
 }
 
 type ListMembersInClassRequest struct {
-	ClassID   uuid.UUID `json:"classID"`
-	TeacherID string    `json:"teacherID"`
+	ClassID uuid.UUID `form:"-"`
 }
 
 type AddMembersToClassRequest struct {
-	ClassID   uuid.UUID `json:"classID"`
+	ClassID   uuid.UUID `json:"-"`
 	Usernames []string  `json:"usernames"`
 }
 
@@ -102,8 +100,8 @@ func (a *AddMembersToClassRequest) Validate() errs.Kind {
 }
 
 type RemoveMembersFromClassRequest struct {
-	ClassID   uuid.UUID `json:"classID"`
-	Usernames []string  `json:"usernames"`
+	ClassID   uuid.UUID `form:"-"`
+	Usernames []string  `form:"usernames"`
 }
 
 func (r *RemoveMembersFromClassRequest) Validate() errs.Kind {

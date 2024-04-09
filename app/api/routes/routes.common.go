@@ -76,6 +76,7 @@ func newCommonRoute(
 	{
 		V1ClassRoute.GET("/", classHdl.ListClasses)
 		V1ClassRoute.GET("/:id", classHdl.GetClass)
+		V1ClassRoute.GET("/:id/member", classHdl.ListMembersInClass)
+		V1ClassRoute.POST("/:id/member", classHdl.CheckInOut)
 	}
-
 }

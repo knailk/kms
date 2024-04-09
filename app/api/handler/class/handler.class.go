@@ -21,6 +21,7 @@ func NewHandler(uc class.IUseCase, base base.AuthCookieHandler) *handler {
 	return &handler{uc: uc, authCookie: base}
 }
 
+// common
 func (h *handler) GetClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.GetClass"
 
@@ -43,6 +44,7 @@ func (h *handler) GetClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, class)
 }
 
+// common
 func (h *handler) ListClasses(ctx *gin.Context) {
 	const op errs.Op = "handler.auth.ListClasses"
 
@@ -63,6 +65,7 @@ func (h *handler) ListClasses(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// admin
 func (h *handler) CreateClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.CreateClass"
 
@@ -83,6 +86,7 @@ func (h *handler) CreateClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// admin
 func (h *handler) UpdateClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.UpdateClass"
 
@@ -105,6 +109,7 @@ func (h *handler) UpdateClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// admin
 func (h *handler) DeleteClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.DeleteClass"
 
@@ -117,6 +122,7 @@ func (h *handler) DeleteClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// admin
 func (h *handler) AddMembersToClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.AddMembersToClass"
 
@@ -128,6 +134,8 @@ func (h *handler) AddMembersToClass(ctx *gin.Context) {
 		return
 	}
 
+	req.ClassID = uuid.MustParse(ctx.Param("id"))
+
 	res, err := h.uc.AddMembersToClass(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, err))
@@ -137,16 +145,19 @@ func (h *handler) AddMembersToClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// admin
 func (h *handler) RemoveMembersFromClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.RemoveMembersFromClass"
 
 	var req class.RemoveMembersFromClassRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		msg := "bind json error: " + err.Error()
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		msg := "bind query error: " + err.Error()
 		logger.Error(msg)
 		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
 		return
 	}
+
+	req.ClassID = uuid.MustParse(ctx.Param("id"))
 
 	res, err := h.uc.RemoveMembersFromClass(ctx, &req)
 	if err != nil {
@@ -157,20 +168,13 @@ func (h *handler) RemoveMembersFromClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// common
 func (h *handler) ListMembersInClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.ListMembersInClass"
 
-	var req class.ListMembersInClassRequest
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		msg := "bind query error: " + err.Error()
-		logger.Error(msg)
-		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
-		return
-	}
-
-	req.ClassID = uuid.MustParse(ctx.Param("id"))
-
-	res, err := h.uc.ListMembersInClass(ctx, &req)
+	res, err := h.uc.ListMembersInClass(ctx, &class.ListMembersInClassRequest{
+		ClassID: uuid.MustParse(ctx.Param("id")),
+	})
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, err))
 		return
@@ -179,6 +183,7 @@ func (h *handler) ListMembersInClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// common
 func (h *handler) CheckInOut(ctx *gin.Context) {
 	const op errs.Op = "handler.class.CheckInOut"
 

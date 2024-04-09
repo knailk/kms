@@ -27,7 +27,7 @@ const (
 	apiTeacherV1  = "/api/v1/teacher"
 	apiDriverV1   = "/api/v1/driver"
 	apiChefV1     = "/api/v1/chef"
-	apiAdminV1     = "/api/v1/admin"
+	apiAdminV1    = "/api/v1/admin"
 )
 
 // NewGinRouter initializes a gin-gonic/gin router
@@ -74,6 +74,8 @@ func initRoutes(
 	newDriverRoute(ctx, router, provider, authCookie)
 
 	newChefRoute(ctx, router, provider, authCookie)
+
+	newAdminRoute(ctx, router, provider, authCookie)
 
 	// Init swagger routes
 	if cfg.Env == config.EnvLocal || cfg.Env == config.EnvDevelopment {
