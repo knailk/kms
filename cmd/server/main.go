@@ -72,11 +72,11 @@ func Run() (err error) {
 		return errs.E(op, err)
 	}
 
-	// cache
-	provider.RedisClient, err = cache.InitRedis(ctx, tasks, cfg)
-	if err != nil {
-		return errs.E(op, err)
-	}
+	// // cache
+	// provider.RedisClient, err = cache.InitRedis(ctx, tasks, cfg)
+	// if err != nil {
+	// 	return errs.E(op, err)
+	// }
 	provider.RistrettoClient, err = cache.InitRistretto(ctx, tasks)
 	if err != nil {
 		return errs.E(op, err)

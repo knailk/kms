@@ -123,7 +123,6 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
 		Where(uc.repo.ChatParticipant.Username.Eq(req.UserRequester)).
 		Preload(uc.repo.ChatSession.ChatParticipants).
-		Preload(uc.repo.ChatSession.ChatParticipants.User).
 		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc()).Limit(1)).
 		Find()
 	if err != nil {

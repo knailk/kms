@@ -15,5 +15,5 @@ type ChatParticipant struct {
 	CreatedAt     time.Time
 	IsDeleted     soft_delete.DeletedAt `gorm:"softDelete:flag"`
 
-	User User `gorm:"foreignKey:id"`
+	User User `gorm:"foreignKey:username"`
 }
