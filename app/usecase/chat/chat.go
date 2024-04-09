@@ -94,7 +94,7 @@ func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMe
 			return nil, errs.E(op, errs.Database, err)
 		}
 	} else {
-		participants := make([]string, len(chatSession.ChatParticipants))
+		participants := []string{req.Username}
 		for _, p := range chatSession.ChatParticipants {
 			if p.Username == req.Adder {
 				continue
@@ -102,10 +102,14 @@ func (uc *useCase) AddMember(ctx context.Context, req *AddMemberRequest) (*AddMe
 			participants = append(participants, p.Username)
 		}
 
-		uc.CreateChat(ctx, &CreateChatRequest{
+		_, err = uc.CreateChat(ctx, &CreateChatRequest{
 			Participants: participants,
 			Owner:        req.Adder,
 		})
+		if err != nil {
+			logger.Error(op, err)
+			return nil, errs.E(op, errs.Database, err)
+		}
 	}
 
 	return &AddMemberResponse{
