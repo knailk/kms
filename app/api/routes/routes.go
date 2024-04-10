@@ -111,7 +111,7 @@ func initMiddlewares(router *gin.Engine, cfg *config.Config) {
 	}
 
 	// CORS middleware
-	middlewares = append(middlewares, mdlwCORS.CORS(cfg))
+	middlewares = append(middlewares, mdlwCORS.CORS())
 
 	router.Use(middlewares...)
 }

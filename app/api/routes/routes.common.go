@@ -43,9 +43,9 @@ func newCommonRoute(
 	)
 	{
 		V1ChatRoute := apiV1Group.Group("/chat")
-		V1ChatRoute.POST("/", chatHdl.CreateChat)
+		V1ChatRoute.POST("", chatHdl.CreateChat)
 		V1ChatRoute.PUT("/member", chatHdl.AddMember)
-		V1ChatRoute.GET("/", chatHdl.ListChats)
+		V1ChatRoute.GET("", chatHdl.ListChats)
 		V1ChatRoute.GET("/:id", chatHdl.GetChat)
 		V1ChatRoute.PUT("/:id", chatHdl.UpdateChat)
 		V1ChatRoute.DELETE("/:id", chatHdl.DeleteChat)
@@ -60,7 +60,7 @@ func newCommonRoute(
 	{
 		V1UserRoute.GET("/me", userHdl.GetProfile)
 		V1UserRoute.PUT("/me", userHdl.UpdateUser)
-		V1UserRoute.GET("/", userHdl.SearchUser)
+		V1UserRoute.GET("", userHdl.SearchUser)
 	}
 	classHdl := class.NewHandler(
 		registry.InjectedClassUseCase(ctx, provider),
@@ -68,7 +68,7 @@ func newCommonRoute(
 	)
 	V1ClassRoute := apiV1Group.Group("/class")
 	{
-		V1ClassRoute.GET("/", classHdl.ListClasses)
+		V1ClassRoute.GET("", classHdl.ListClasses)
 		V1ClassRoute.GET("/:id", classHdl.GetClass)
 		V1ClassRoute.GET("/:id/member", classHdl.ListMembersInClass)
 		V1ClassRoute.POST("/:id/member", classHdl.CheckInOut)
