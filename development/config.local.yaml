@@ -1,4 +1,4 @@
-env: development
+env: local
 platform: local
 app:
   name: kms

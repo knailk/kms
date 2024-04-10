@@ -1,17 +1,16 @@
 package cors
 
 import (
-	"kms/app/config"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func CORS(cfg *config.Config) gin.HandlerFunc {
+func CORS() gin.HandlerFunc {
 	corsCfg := cors.Config{
-		AllowOrigins: []string{"http://localhost:3000"},
-		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Content-Length", "Origin", "cookie", "access-control-allow-origin",
 			"authorization, origin, content-type, accept", "X-CSRF-Token", "Pragma"},
 		ExposeHeaders:    []string{"Content-Length", "Content-Disposition"},

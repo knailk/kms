@@ -1,7 +1,6 @@
 package recovery
 
 import (
-	"errors"
 	"kms/app/errs"
 	"net/http"
 
@@ -14,7 +13,11 @@ func Recovery() gin.HandlerFunc {
 	// Use nil as writer to prevent Gin to log sensitive information
 	// of the request to the default stdout.
 	return gin.CustomRecoveryWithWriter(nil, func(ctx *gin.Context, recover interface{}) {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errs.E(op, errors.New("internal server error"))})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": gin.H{
+			"code":    errs.Internal.String(),
+			"message": recover,
+			"op":      op,
+		}})
 		ctx.Abort()
 	})
 }
