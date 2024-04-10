@@ -70,7 +70,8 @@ func migrate(db *gorm.DB, action string) (err error) {
 		return errors.New("error when get files name")
 	}
 
-	for _, file := range files {
+
+	for i, file := range files {
 		logger.Info("Executing migration")
 		data, err := os.ReadFile(file)
 		if err != nil {
@@ -79,9 +80,11 @@ func migrate(db *gorm.DB, action string) (err error) {
 
 		tx := db.Exec(string(data))
 		if tx.Error != nil {
-			fmt.Println(err)
+			fmt.Println("error when exec: ", tx.Error)
 			// return fmt.Errorf("error when exec query in file:%v", file)
 		}
+
+		fmt.Println("exec file number: ", i)
 	}
 
 	logger.Info("migration success with action ", action)

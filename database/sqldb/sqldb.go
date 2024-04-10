@@ -175,6 +175,6 @@ func autoMigrate(db *gorm.DB) {
 		// entity.CheckInOut{},
 		// entity.Class{},
 		// entity.Schedule{},
-		// entity.UserClass{},
+		entity.UserClass{},
 	)
 }

@@ -1,2 +1,0 @@
-DROP TABLE IF EXISTS chat_sessions CASCADE;DROP TABLE IF EXISTS chat_messages CASCADE;
-DROP TYPE "MessageType" CASCADE;
