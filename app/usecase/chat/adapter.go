@@ -12,6 +12,10 @@ func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string
 		result = append(result, toGetChatResponse(chatSession, userRequester))
 	}
 
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].UpdatedAt.After(result[j].UpdatedAt)
+	})
+
 	return result
 }
 
@@ -57,6 +61,7 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 		ChatPicture:   chatPicture,
 		LatestMessage: latestMsg,
 		CreatedAt:     chatSession.CreatedAt,
+		UpdatedAt:     chatSession.UpdatedAt,
 	}
 }
 
