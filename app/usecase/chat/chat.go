@@ -125,9 +125,9 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 			uc.repo.ChatParticipant,
 			uc.repo.ChatSession.ID.EqCol(uc.repo.ChatParticipant.ChatSessionID)).
 		Where(uc.repo.ChatParticipant.Username.Eq(req.UserRequester)).
+		Preload(uc.repo.ChatSession.LatestMessage).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
-		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc())).
 		Find()
 	if err != nil {
 		logger.Error(op, " get chat session error :", err)
@@ -135,7 +135,7 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 	}
 
 	return &ListChatsResponse{
-		ChatSessions: toListChatResponse(chatSessions, req.UserRequester, true),
+		ChatSessions: toListChatResponse(chatSessions, req.UserRequester),
 	}, nil
 }
 
@@ -202,16 +202,33 @@ func (uc *useCase) CreateMessage(ctx context.Context, req *CreateMessageRequest)
 		return nil, errs.E(op, errs.Invalid, "sender not in chat")
 	}
 
-	err = uc.repo.ChatMessage.Create(&entity.ChatMessage{
-		ID:            uuid.New(),
-		ChatSessionID: req.ChatSessionID,
-		Sender:        req.Sender,
-		Message:       req.Message,
-		Type:          req.Type,
+	uc.repo.Transaction(func(tx *repository.Query) error {
+		msgID := uuid.New()
+		err = tx.ChatMessage.Create(&entity.ChatMessage{
+			ID:            msgID,
+			ChatSessionID: req.ChatSessionID,
+			Sender:        req.Sender,
+			Message:       req.Message,
+			Type:          req.Type,
+		})
+		if err != nil {
+			return errs.E(op, errs.Database, err)
+		}
+
+		_, err := tx.ChatSession.Where(tx.ChatSession.ID.Eq(req.ChatSessionID)).Updates(
+			&entity.ChatSession{
+				LatestMessageID: msgID,
+			},
+		)
+		if err != nil {
+			return errs.E(op, errs.Database, err)
+		}
+
+		return nil
 	})
 	if err != nil {
 		logger.Error(op, " create message error :", err)
-		return nil, errs.E(op, errs.Database, err)
+		return nil, err
 	}
 
 	return &CreateMessageResponse{}, nil

@@ -158,9 +158,9 @@ func autoMigrate(db *gorm.DB) {
 	// migration for miniapp
 	// create enums
 	execLines := []string{
-		`CREATE TYPE "UserRole" AS ENUM ('admin', 'student', 'teacher', 'chef', 'driver');`,
-		`CREATE TYPE "MessageType" AS ENUM ('text', 'image', 'video', 'audio', 'file', 'link', 'voice', 'sticker');`,
-		`CREATE TYPE "CheckInOutAction" AS ENUM ('check_in', 'check_out');`,
+		// `CREATE TYPE "UserRole" AS ENUM ('admin', 'student', 'teacher', 'chef', 'driver');`,
+		// `CREATE TYPE "MessageType" AS ENUM ('text', 'image', 'video', 'audio', 'file', 'link', 'voice', 'sticker');`,
+		// `CREATE TYPE "CheckInOutAction" AS ENUM ('check_in', 'check_out');`,
 	}
 	for _, line := range execLines {
 		db.Debug().Exec(line)
@@ -170,8 +170,8 @@ func autoMigrate(db *gorm.DB) {
 		// add more models here for auto migrate when update models
 		// entity.User{},
 		// entity.ChatMessage{},
-		entity.ChatParticipant{},
-		// entity.ChatSession{},
+		// entity.ChatParticipant{},
+		entity.ChatSession{},
 		// entity.CheckInOut{},
 		// entity.Class{},
 		// entity.Schedule{},

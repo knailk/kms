@@ -19,12 +19,18 @@ type ListChatsResponse struct {
 type UpdateChatResponse struct{}
 
 type GetChatResponse struct {
-	ID            uuid.UUID          `json:"id"`
-	Name          string             `json:"name"`
-	ChatMessages  []*MessageResponse `json:"chatMessages"`
-	LatestMessage *MessageResponse   `json:"latestMessage"`
+	ID            uuid.UUID        `json:"id"`
+	Name          string           `json:"name"`
+	ChatPicture   string           `json:"chatPicture"`
+	ChatMessages  []MessageByDate  `json:"chatMessages"`
+	LatestMessage *MessageResponse `json:"latestMessage"`
 
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type MessageByDate struct {
+	Date     string             `json:"date"`
+	Messages []*MessageResponse `json:"messages"`
 }
 
 type MessageResponse struct {
@@ -36,6 +42,7 @@ type MessageResponse struct {
 	SenderName string    `json:"senderName"`
 	PictureURL string    `json:"pictureURL"`
 	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"-"`
 }
 
 type DeleteChatResponse struct{}

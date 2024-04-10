@@ -29,8 +29,16 @@ func newChatSession(db *gorm.DB, opts ...gen.DOOption) chatSession {
 	_chatSession.ALL = field.NewAsterisk(tableName)
 	_chatSession.ID = field.NewField(tableName, "id")
 	_chatSession.Name = field.NewString(tableName, "name")
+	_chatSession.LatestMessageID = field.NewField(tableName, "latest_message_id")
 	_chatSession.CreatedAt = field.NewTime(tableName, "created_at")
+	_chatSession.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_chatSession.IsDeleted = field.NewUint(tableName, "is_deleted")
+	_chatSession.LatestMessage = chatSessionHasOneLatestMessage{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("LatestMessage", "entity.ChatMessage"),
+	}
+
 	_chatSession.ChatParticipants = chatSessionHasManyChatParticipants{
 		db: db.Session(&gorm.Session{}),
 
@@ -56,11 +64,15 @@ func newChatSession(db *gorm.DB, opts ...gen.DOOption) chatSession {
 type chatSession struct {
 	chatSessionDo
 
-	ALL              field.Asterisk
-	ID               field.Field
-	Name             field.String
-	CreatedAt        field.Time
-	IsDeleted        field.Uint
+	ALL             field.Asterisk
+	ID              field.Field
+	Name            field.String
+	LatestMessageID field.Field
+	CreatedAt       field.Time
+	UpdatedAt       field.Time
+	IsDeleted       field.Uint
+	LatestMessage   chatSessionHasOneLatestMessage
+
 	ChatParticipants chatSessionHasManyChatParticipants
 
 	ChatMessages chatSessionHasManyChatMessages
@@ -82,7 +94,9 @@ func (c *chatSession) updateTableName(table string) *chatSession {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewField(table, "id")
 	c.Name = field.NewString(table, "name")
+	c.LatestMessageID = field.NewField(table, "latest_message_id")
 	c.CreatedAt = field.NewTime(table, "created_at")
+	c.UpdatedAt = field.NewTime(table, "updated_at")
 	c.IsDeleted = field.NewUint(table, "is_deleted")
 
 	c.fillFieldMap()
@@ -100,10 +114,12 @@ func (c *chatSession) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *chatSession) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 6)
+	c.fieldMap = make(map[string]field.Expr, 9)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["name"] = c.Name
+	c.fieldMap["latest_message_id"] = c.LatestMessageID
 	c.fieldMap["created_at"] = c.CreatedAt
+	c.fieldMap["updated_at"] = c.UpdatedAt
 	c.fieldMap["is_deleted"] = c.IsDeleted
 
 }
@@ -116,6 +132,77 @@ func (c chatSession) clone(db *gorm.DB) chatSession {
 func (c chatSession) replaceDB(db *gorm.DB) chatSession {
 	c.chatSessionDo.ReplaceDB(db)
 	return c
+}
+
+type chatSessionHasOneLatestMessage struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a chatSessionHasOneLatestMessage) Where(conds ...field.Expr) *chatSessionHasOneLatestMessage {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a chatSessionHasOneLatestMessage) WithContext(ctx context.Context) *chatSessionHasOneLatestMessage {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a chatSessionHasOneLatestMessage) Session(session *gorm.Session) *chatSessionHasOneLatestMessage {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a chatSessionHasOneLatestMessage) Model(m *entity.ChatSession) *chatSessionHasOneLatestMessageTx {
+	return &chatSessionHasOneLatestMessageTx{a.db.Model(m).Association(a.Name())}
+}
+
+type chatSessionHasOneLatestMessageTx struct{ tx *gorm.Association }
+
+func (a chatSessionHasOneLatestMessageTx) Find() (result *entity.ChatMessage, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a chatSessionHasOneLatestMessageTx) Append(values ...*entity.ChatMessage) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a chatSessionHasOneLatestMessageTx) Replace(values ...*entity.ChatMessage) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a chatSessionHasOneLatestMessageTx) Delete(values ...*entity.ChatMessage) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a chatSessionHasOneLatestMessageTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a chatSessionHasOneLatestMessageTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type chatSessionHasManyChatParticipants struct {

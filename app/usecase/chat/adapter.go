@@ -2,17 +2,14 @@ package chat
 
 import (
 	"kms/app/domain/entity"
+	"sort"
 	"strings"
 )
 
-func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string, isIgnoreMessage bool) []*GetChatResponse {
+func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string) []*GetChatResponse {
 	result := make([]*GetChatResponse, 0)
 	for _, chatSession := range chatSessions {
-		chat := toGetChatResponse(chatSession, userRequester)
-		if isIgnoreMessage {
-			chat.ChatMessages = nil
-		}
-		result = append(result, chat)
+		result = append(result, toGetChatResponse(chatSession, userRequester))
 	}
 
 	return result
@@ -20,6 +17,7 @@ func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string
 
 func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *GetChatResponse {
 	chatName := ""
+	chatPicture := ""
 	if len(chatSession.ChatParticipants) > 2 {
 		chatName = generateChatNameFromUser(chatSession.ChatParticipants)
 	} else {
@@ -27,6 +25,7 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 			chatName = chatSession.ChatParticipants[1].User.FullName
 		} else {
 			chatName = chatSession.ChatParticipants[0].User.FullName
+			chatPicture = chatSession.ChatParticipants[0].User.PictureURL
 		}
 	}
 
@@ -35,29 +34,28 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 		mapParticipants[p.Username] = p
 	}
 
-	messages := make([]*MessageResponse, 0)
-	for _, m := range chatSession.ChatMessages {
-		messages = append(messages, &MessageResponse{
-			ID:         m.ID,
-			Sender:     m.Sender,
-			Message:    m.Message,
-			Type:       string(m.Type),
-			CreatedAt:  m.CreatedAt,
-			PictureURL: mapParticipants[m.Sender].User.PictureURL,
-			SenderName: mapParticipants[m.Sender].User.FullName,
-		})
-	}
+	messages := filterMessagesByDate(chatSession.ChatMessages, mapParticipants)
 
-	var latestMessage *MessageResponse
-	if len(messages) > 0 {
-		latestMessage = messages[0]
+	var latestMsg *MessageResponse
+	if chatSession.LatestMessage != nil {
+		latestMsg = &MessageResponse{
+			ID:         chatSession.LatestMessage.ID,
+			Sender:     chatSession.LatestMessage.Sender,
+			Message:    chatSession.LatestMessage.Message,
+			Type:       chatSession.LatestMessage.Type.String(),
+			PictureURL: mapParticipants[chatSession.LatestMessage.Sender].User.PictureURL,
+			SenderName: mapParticipants[chatSession.LatestMessage.Sender].User.FullName,
+			CreatedAt:  chatSession.LatestMessage.CreatedAt,
+			UpdatedAt:  chatSession.LatestMessage.UpdatedAt,
+		}
 	}
 
 	return &GetChatResponse{
 		ID:            chatSession.ID,
 		Name:          chatName,
 		ChatMessages:  messages,
-		LatestMessage: latestMessage,
+		ChatPicture:   chatPicture,
+		LatestMessage: latestMsg,
 		CreatedAt:     chatSession.CreatedAt,
 	}
 }
@@ -77,4 +75,38 @@ func generateChatNameFromUser(user []entity.ChatParticipant) string {
 	}
 
 	return generateChatName(listName)
+}
+
+func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[string]entity.ChatParticipant) []MessageByDate {
+	messageMap := make(map[string][]*MessageResponse)
+
+	for _, msg := range messages {
+		date := msg.CreatedAt.Format("2006-01-02")
+		messageMap[date] = append(messageMap[date], &MessageResponse{
+			ID:         msg.ID,
+			Sender:     msg.Sender,
+			Message:    msg.Message,
+			Type:       msg.Type.String(),
+			CreatedAt:  msg.CreatedAt,
+			UpdatedAt:  msg.UpdatedAt,
+			SenderName: mapParticipants[msg.Sender].User.FullName,
+			PictureURL: mapParticipants[msg.Sender].User.PictureURL,
+		})
+	}
+
+	var dates []string
+	for date := range messageMap {
+		dates = append(dates, date)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(dates)))
+
+	var result []MessageByDate
+	for _, date := range dates {
+		result = append(result, MessageByDate{
+			Date:     date,
+			Messages: messageMap[date],
+		})
+	}
+
+	return result
 }
