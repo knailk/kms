@@ -5,10 +5,14 @@ import (
 	"strings"
 )
 
-func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string) []*GetChatResponse {
+func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string, isIgnoreMessage bool) []*GetChatResponse {
 	result := make([]*GetChatResponse, 0)
 	for _, chatSession := range chatSessions {
-		result = append(result, toGetChatResponse(chatSession, userRequester))
+		chat := toGetChatResponse(chatSession, userRequester)
+		if isIgnoreMessage {
+			chat.ChatMessages = nil
+		}
+		result = append(result, chat)
 	}
 
 	return result
@@ -17,7 +21,7 @@ func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string
 func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *GetChatResponse {
 	chatName := ""
 	if len(chatSession.ChatParticipants) > 2 {
-		chatName = chatSession.Name
+		chatName = generateChatNameFromUser(chatSession.ChatParticipants)
 	} else {
 		if chatSession.ChatParticipants[0].Username == userRequester {
 			chatName = chatSession.ChatParticipants[1].User.FullName
@@ -62,12 +66,15 @@ func generateChatName(participants []string) string {
 	// Join the usernames with commas
 	joinedNames := strings.Join(participants, ", ")
 
-	// Truncate the joined names if it's too long
-	const maxCharacters = 30
-	if len(joinedNames) > maxCharacters {
-		joinedNames = joinedNames[:maxCharacters] + "..."
-	}
-
 	// Construct the group chat name
 	return joinedNames
+}
+
+func generateChatNameFromUser(user []entity.ChatParticipant) string {
+	listName := make([]string, 0)
+	for _, p := range user {
+		listName = append(listName, p.User.FullName)
+	}
+
+	return generateChatName(listName)
 }

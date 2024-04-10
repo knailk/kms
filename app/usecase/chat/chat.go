@@ -127,7 +127,7 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 		Where(uc.repo.ChatParticipant.Username.Eq(req.UserRequester)).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
-		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc()).Limit(1)).
+		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc())).
 		Find()
 	if err != nil {
 		logger.Error(op, " get chat session error :", err)
@@ -135,7 +135,7 @@ func (uc *useCase) ListChats(ctx context.Context, req *ListChatsRequest) (*ListC
 	}
 
 	return &ListChatsResponse{
-		ChatSessions: toListChatResponse(chatSessions, req.UserRequester),
+		ChatSessions: toListChatResponse(chatSessions, req.UserRequester, true),
 	}, nil
 }
 
