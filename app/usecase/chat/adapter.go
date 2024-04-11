@@ -43,14 +43,17 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 	var latestMsg *MessageResponse
 	if chatSession.LatestMessage != nil {
 		latestMsg = &MessageResponse{
-			ID:         chatSession.LatestMessage.ID,
-			Sender:     chatSession.LatestMessage.Sender,
-			Message:    chatSession.LatestMessage.Message,
-			Type:       chatSession.LatestMessage.Type.String(),
-			PictureURL: mapParticipants[chatSession.LatestMessage.Sender].User.PictureURL,
-			SenderName: mapParticipants[chatSession.LatestMessage.Sender].User.FullName,
-			CreatedAt:  chatSession.LatestMessage.CreatedAt,
-			UpdatedAt:  chatSession.LatestMessage.UpdatedAt,
+			ID:      chatSession.LatestMessage.ID,
+			Message: chatSession.LatestMessage.Message,
+			Type:    chatSession.LatestMessage.Type.String(),
+
+			CreatedAt: chatSession.LatestMessage.CreatedAt,
+			UpdatedAt: chatSession.LatestMessage.UpdatedAt,
+			SenderResponse: &SenderResponse{
+				Username:   chatSession.LatestMessage.Sender,
+				Avatar:     mapParticipants[chatSession.LatestMessage.Sender].User.PictureURL,
+				SenderName: mapParticipants[chatSession.LatestMessage.Sender].User.FullName,
+			},
 		}
 	}
 
@@ -88,14 +91,16 @@ func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[str
 	for _, msg := range messages {
 		date := msg.CreatedAt.Format("2006-01-02")
 		messageMap[date] = append(messageMap[date], &MessageResponse{
-			ID:         msg.ID,
-			Sender:     msg.Sender,
-			Message:    msg.Message,
-			Type:       msg.Type.String(),
-			CreatedAt:  msg.CreatedAt,
-			UpdatedAt:  msg.UpdatedAt,
-			SenderName: mapParticipants[msg.Sender].User.FullName,
-			PictureURL: mapParticipants[msg.Sender].User.PictureURL,
+			ID:        msg.ID,
+			Message:   msg.Message,
+			Type:      msg.Type.String(),
+			CreatedAt: msg.CreatedAt,
+			UpdatedAt: msg.UpdatedAt,
+			SenderResponse: &SenderResponse{
+				Username:   msg.Sender,
+				Avatar:     mapParticipants[msg.Sender].User.PictureURL,
+				SenderName: mapParticipants[msg.Sender].User.FullName,
+			},
 		})
 	}
 

@@ -35,15 +35,18 @@ type MessageByDate struct {
 }
 
 type MessageResponse struct {
-	ID      uuid.UUID `json:"id"`
-	Sender  string    `json:"sender"`
-	Message string    `json:"message"`
-	Type    string    `json:"type"`
+	ID             uuid.UUID       `json:"id"`
+	Message        string          `json:"content"`
+	Type           string          `json:"type"`
+	CreatedAt      time.Time       `json:"createdAt"`
+	UpdatedAt      time.Time       `json:"-"`
+	SenderResponse *SenderResponse `json:"sender"`
+}
 
-	SenderName string    `json:"senderName"`
-	PictureURL string    `json:"pictureURL"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"-"`
+type SenderResponse struct {
+	Username   string `json:"username"`
+	SenderName string `json:"name"`
+	Avatar     string `json:"avatar"`
 }
 
 type DeleteChatResponse struct{}
