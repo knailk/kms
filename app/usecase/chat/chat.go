@@ -31,31 +31,28 @@ func (uc *useCase) CreateChat(ctx context.Context, req *CreateChatRequest) (*Cre
 
 	chatSessionID := uuid.New()
 
-	users, err := uc.repo.User.Where(uc.repo.User.Username.In(req.Participants...)).Find()
+	users, err := uc.repo.User.Where(uc.repo.User.Username.In(append([]string{req.Owner}, req.Participants...)...)).Find()
 	if err != nil {
 		logger.Error(op, " get user error :", err)
 		return nil, errs.E(op, errs.Database, err)
 	}
 
 	participants := []entity.ChatParticipant{}
+	fullName := []string{}
 	for _, user := range users {
 		participants = append(participants, entity.ChatParticipant{
 			ID:            uuid.New(),
 			ChatSessionID: chatSessionID,
 			Username:      user.Username,
+			IsOwner:       user.Username == req.Owner,
 		})
-	}
 
-	participants = append(participants, entity.ChatParticipant{
-		ID:            uuid.New(),
-		ChatSessionID: chatSessionID,
-		Username:      req.Owner,
-		IsOwner:       true,
-	})
+		fullName = append(fullName, user.FullName)
+	}
 
 	err = uc.repo.ChatSession.Create(&entity.ChatSession{
 		ID:               chatSessionID,
-		Name:             generateChatName(append([]string{req.Owner}, req.Participants...)),
+		Name:             generateChatName(fullName),
 		ChatParticipants: participants,
 	})
 	if err != nil {
@@ -151,7 +148,7 @@ func (uc *useCase) GetChat(ctx context.Context, req *GetChatRequest) (*GetChatRe
 		).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
-		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc())).
+		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Asc())).
 		First()
 	if err != nil {
 		logger.Error(op, " get chat session error :", err)

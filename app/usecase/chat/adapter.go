@@ -23,7 +23,7 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 	chatName := ""
 	chatPicture := ""
 	if len(chatSession.ChatParticipants) > 2 {
-		chatName = generateChatNameFromUser(chatSession.ChatParticipants)
+		chatName = chatSession.Name
 	} else {
 		if chatSession.ChatParticipants[0].Username == userRequester {
 			chatName = chatSession.ChatParticipants[1].User.FullName
@@ -74,15 +74,6 @@ func generateChatName(participants []string) string {
 
 	// Construct the group chat name
 	return joinedNames
-}
-
-func generateChatNameFromUser(user []entity.ChatParticipant) string {
-	listName := make([]string, 0)
-	for _, p := range user {
-		listName = append(listName, p.User.FullName)
-	}
-
-	return generateChatName(listName)
 }
 
 func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[string]entity.ChatParticipant) []MessageByDate {
