@@ -148,7 +148,7 @@ func (uc *useCase) GetChat(ctx context.Context, req *GetChatRequest) (*GetChatRe
 		).
 		Preload(uc.repo.ChatSession.ChatParticipants).
 		Preload(uc.repo.ChatSession.ChatParticipants.User).
-		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc()).Offset(req.Offset).Limit(20)).
+		Preload(uc.repo.ChatSession.ChatMessages.Order(uc.repo.ChatMessage.CreatedAt.Desc()).Limit(req.Limit)).
 		First()
 	if err != nil {
 		logger.Error(op, " get chat session error :", err)

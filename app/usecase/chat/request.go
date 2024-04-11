@@ -33,7 +33,7 @@ type ListChatsRequest struct {
 type GetChatRequest struct {
 	UserRequester string    `form:"-"`
 	ChatSessionID uuid.UUID `form:"-"`
-	Offset        int       `form:"offset"`
+	Limit         int       `form:"limit"`
 }
 
 type UpdateChatRequest struct {
