@@ -117,5 +117,10 @@ func toMemberSlice(req map[string]*MemberResponse) []*MemberResponse {
 	for _, v := range req {
 		result = append(result, v)
 	}
+
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].SenderName > result[j].SenderName
+	})
+
 	return result
 }
