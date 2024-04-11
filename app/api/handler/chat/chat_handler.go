@@ -6,6 +6,7 @@ import (
 	"kms/app/errs"
 	"kms/app/usecase/chat"
 	"kms/pkg/authjwt"
+	"kms/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -85,12 +86,20 @@ func (h *handler) ListChats(ctx *gin.Context) {
 func (h *handler) GetChat(ctx *gin.Context) {
 	const op errs.Op = "handler.chat.GetChat"
 
+	var req chat.GetChatRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		msg := "bind query error: " + err.Error()
+		logger.Error(msg)
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
+		return
+	}
+
 	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
 
-	res, err := h.uc.GetChat(ctx, &chat.GetChatRequest{
-		UserRequester: userClaims.Username,
-		ChatSessionID: uuid.MustParse(ctx.Param("id")),
-	})
+	req.UserRequester = userClaims.Username
+	req.ChatSessionID = uuid.MustParse(ctx.Param("id"))
+
+	res, err := h.uc.GetChat(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, err)
 		return

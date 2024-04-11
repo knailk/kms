@@ -31,8 +31,9 @@ type ListChatsRequest struct {
 }
 
 type GetChatRequest struct {
-	UserRequester string    `json:"-"`
-	ChatSessionID uuid.UUID `json:"-"`
+	UserRequester string    `form:"-"`
+	ChatSessionID uuid.UUID `form:"-"`
+	Offset        int       `form:"offset"`
 }
 
 type UpdateChatRequest struct {
