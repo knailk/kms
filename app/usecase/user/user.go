@@ -86,11 +86,12 @@ func (uc *useCase) SearchUser(ctx context.Context, req *SearchUserRequest) (*Sea
 	const op errs.Op = "auth.useCase.SearchUser"
 
 	likeKeyword := "%" + req.Keyword + "%"
-	users, err := uc.repo.User.Where(
-		uc.repo.User.Username.Like(likeKeyword),
-		uc.repo.User.FullName.Like(likeKeyword),
-		uc.repo.User.Email.Like(likeKeyword),
-	).Limit(10).Find()
+	users, err := uc.repo.User.
+		Where(uc.repo.User.Username.Like(likeKeyword)).
+		Or(uc.repo.User.FullName.Like(likeKeyword)).
+		Or(uc.repo.User.Email.Like(likeKeyword)).
+		Limit(10).
+		Find()
 	if err != nil {
 		return nil, errs.E(op, err)
 	}
