@@ -99,7 +99,7 @@ func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[str
 	for date := range messageMap {
 		dates = append(dates, date)
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(dates)))
+	sort.Strings(dates)
 
 	var result []MessageByDate
 	for _, date := range dates {
