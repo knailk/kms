@@ -81,6 +81,10 @@ func generateChatName(participants []string) string {
 }
 
 func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[string]*MemberResponse) []MessageByDate {
+	sort.SliceStable(messages, func(i, j int) bool {
+		return messages[i].CreatedAt.Before(messages[j].CreatedAt)
+	})
+
 	messageMap := make(map[string][]*MessageResponse)
 
 	for _, msg := range messages {
