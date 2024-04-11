@@ -13,6 +13,8 @@ func toListChatResponse(chatSessions []*entity.ChatSession, userRequester string
 	}
 
 	sort.SliceStable(result, func(i, j int) bool {
+		result[i].Members = nil
+		result[j].Members = nil
 		return result[i].UpdatedAt.After(result[j].UpdatedAt)
 	})
 
@@ -27,15 +29,20 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 	} else {
 		if chatSession.ChatParticipants[0].Username == userRequester {
 			chatName = chatSession.ChatParticipants[1].User.FullName
+			chatPicture = chatSession.ChatParticipants[1].User.PictureURL
 		} else {
 			chatName = chatSession.ChatParticipants[0].User.FullName
 			chatPicture = chatSession.ChatParticipants[0].User.PictureURL
 		}
 	}
 
-	mapParticipants := make(map[string]entity.ChatParticipant)
+	mapParticipants := make(map[string]*MemberResponse)
 	for _, p := range chatSession.ChatParticipants {
-		mapParticipants[p.Username] = p
+		mapParticipants[p.Username] = &MemberResponse{
+			Username:   p.Username,
+			Avatar:     p.User.PictureURL,
+			SenderName: p.User.FullName,
+		}
 	}
 
 	messages := filterMessagesByDate(chatSession.ChatMessages, mapParticipants)
@@ -47,21 +54,18 @@ func toGetChatResponse(chatSession *entity.ChatSession, userRequester string) *G
 			Message: chatSession.LatestMessage.Message,
 			Type:    chatSession.LatestMessage.Type.String(),
 
-			CreatedAt: chatSession.LatestMessage.CreatedAt,
-			UpdatedAt: chatSession.LatestMessage.UpdatedAt,
-			SenderResponse: &SenderResponse{
-				Username:   chatSession.LatestMessage.Sender,
-				Avatar:     mapParticipants[chatSession.LatestMessage.Sender].User.PictureURL,
-				SenderName: mapParticipants[chatSession.LatestMessage.Sender].User.FullName,
-			},
+			CreatedAt:      chatSession.LatestMessage.CreatedAt,
+			UpdatedAt:      chatSession.LatestMessage.UpdatedAt,
+			SenderResponse: mapParticipants[chatSession.LatestMessage.Sender],
 		}
 	}
 
 	return &GetChatResponse{
 		ID:            chatSession.ID,
 		Name:          chatName,
-		ChatMessages:  messages,
 		ChatPicture:   chatPicture,
+		ChatMessages:  messages,
+		Members:       toMemberSlice(mapParticipants),
 		LatestMessage: latestMsg,
 		CreatedAt:     chatSession.CreatedAt,
 		UpdatedAt:     chatSession.UpdatedAt,
@@ -76,22 +80,18 @@ func generateChatName(participants []string) string {
 	return joinedNames
 }
 
-func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[string]entity.ChatParticipant) []MessageByDate {
+func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[string]*MemberResponse) []MessageByDate {
 	messageMap := make(map[string][]*MessageResponse)
 
 	for _, msg := range messages {
 		date := msg.CreatedAt.Format("2006-01-02")
 		messageMap[date] = append(messageMap[date], &MessageResponse{
-			ID:        msg.ID,
-			Message:   msg.Message,
-			Type:      msg.Type.String(),
-			CreatedAt: msg.CreatedAt,
-			UpdatedAt: msg.UpdatedAt,
-			SenderResponse: &SenderResponse{
-				Username:   msg.Sender,
-				Avatar:     mapParticipants[msg.Sender].User.PictureURL,
-				SenderName: mapParticipants[msg.Sender].User.FullName,
-			},
+			ID:             msg.ID,
+			Message:        msg.Message,
+			Type:           msg.Type.String(),
+			CreatedAt:      msg.CreatedAt,
+			UpdatedAt:      msg.UpdatedAt,
+			SenderResponse: mapParticipants[msg.Sender],
 		})
 	}
 
@@ -109,5 +109,13 @@ func filterMessagesByDate(messages []entity.ChatMessage, mapParticipants map[str
 		})
 	}
 
+	return result
+}
+
+func toMemberSlice(req map[string]*MemberResponse) []*MemberResponse {
+	result := make([]*MemberResponse, 0)
+	for _, v := range req {
+		result = append(result, v)
+	}
 	return result
 }
