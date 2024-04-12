@@ -35,13 +35,15 @@ type ScheduleRequest struct {
 }
 
 type GetClassRequest struct {
-	ID       uuid.UUID `form:"-"`
-	FromDate int64     `form:"fromDate"`
-	ToDate   int64     `form:"toDate"`
+	TeacherID string    `form:"-"`
+	DriverID  string    `form:"-"`
+	ID        uuid.UUID `form:"id"`
+	FromDate  int64     `form:"fromDate"`
+	ToDate    int64     `form:"toDate"`
 }
 
 func (g *GetClassRequest) Validate() errs.Kind {
-	if g.ID == uuid.Nil {
+	if g.ID == uuid.Nil && g.TeacherID == "" && g.DriverID == "" {
 		return errs.InvalidRequest
 	}
 	return errs.Other
@@ -77,12 +79,6 @@ func (d *DeleteClassRequest) Validate() errs.Kind {
 	return errs.Other
 }
 
-type CheckInOutRequest struct {
-	ClassID   uuid.UUID               `json:"-"`
-	Usernames []string                `json:"usernames"`
-	Action    entity.CheckInOutAction `json:"action"`
-}
-
 type ListMembersInClassRequest struct {
 	ClassID uuid.UUID `form:"-"`
 }
@@ -106,6 +102,24 @@ type RemoveMembersFromClassRequest struct {
 
 func (r *RemoveMembersFromClassRequest) Validate() errs.Kind {
 	if r.ClassID == uuid.Nil || len(r.Usernames) == 0 {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
+type CheckInOutRequest struct {
+	ClassID   uuid.UUID               `json:"-"`
+	Usernames []string                `json:"usernames"`
+	Action    entity.CheckInOutAction `json:"action"`
+}
+
+type CheckInOutHistoriesRequest struct {
+	ClassID uuid.UUID `form:"-"`
+	Date    int64     `form:"date"`
+}
+
+func (c *CheckInOutHistoriesRequest) Validate() errs.Kind {
+	if c.ClassID == uuid.Nil || c.Date == 0 {
 		return errs.InvalidRequest
 	}
 	return errs.Other

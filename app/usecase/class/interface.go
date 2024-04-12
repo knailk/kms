@@ -14,4 +14,5 @@ type IUseCase interface {
 	RemoveMembersFromClass(ctx context.Context, req *RemoveMembersFromClassRequest) (*RemoveMembersFromClassResponse, error)
 
 	CheckInOut(ctx context.Context, req *CheckInOutRequest) (*CheckInOutResponse, error)
+	CheckInOutHistories(ctx context.Context, req *CheckInOutHistoriesRequest) (*CheckInOutHistoriesResponse, error)
 }

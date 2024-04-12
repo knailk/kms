@@ -2,8 +2,10 @@ package class
 
 import (
 	"kms/app/api/handler/base"
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/usecase/class"
+	"kms/pkg/authjwt"
 	"kms/pkg/logger"
 	"net/http"
 
@@ -33,7 +35,15 @@ func (h *handler) GetClass(ctx *gin.Context) {
 		return
 	}
 
-	req.ID = uuid.MustParse(ctx.Param("id"))
+	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
+
+	if userClaims.Role == string(entity.UserRoleTeacher) {
+		req.TeacherID = userClaims.Username
+	}
+
+	if userClaims.Role == string(entity.UserRoleDriver) {
+		req.DriverID = userClaims.Username
+	}
 
 	class, err := h.uc.GetClass(ctx, &req)
 	if err != nil {

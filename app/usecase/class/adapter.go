@@ -58,3 +58,15 @@ func toUserInClass(user *entity.User) *GetUserInClass {
 		FullName: user.FullName,
 	}
 }
+
+func toCheckInOutHistoriesResponse(checkInOuts []*entity.CheckInOut) []*CheckInOutHistoryResponse {
+	var responses []*CheckInOutHistoryResponse
+	for _, checkInOut := range checkInOuts {
+		responses = append(responses, &CheckInOutHistoryResponse{
+			Username: checkInOut.Username,
+			Action:   checkInOut.Action.String(),
+			Date:     checkInOut.Date,
+		})
+	}
+	return responses
+}

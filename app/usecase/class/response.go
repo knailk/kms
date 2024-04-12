@@ -56,3 +56,13 @@ type ListMembersInClassResponse struct {
 type AddMemberToClassResponse struct{}
 
 type RemoveMembersFromClassResponse struct{}
+
+type CheckInOutHistoriesResponse struct {
+	Histories []*CheckInOutHistoryResponse `json:"histories"`
+}
+
+type CheckInOutHistoryResponse struct {
+	Username string `json:"username"`
+	Action   string `json:"action"`
+	Date     int64  `json:"date"`
+}

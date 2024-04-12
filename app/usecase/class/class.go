@@ -75,6 +75,14 @@ func (uc *useCase) GetClass(ctx context.Context, req *GetClassRequest) (*GetClas
 		filter = append(filter, uc.repo.Class.ID.Eq(req.ID))
 	}
 
+	if req.TeacherID != "" {
+		filter = append(filter, uc.repo.Class.TeacherID.Eq(req.TeacherID))
+	}
+
+	if req.DriverID != "" {
+		filter = append(filter, uc.repo.Class.DriverID.Eq(req.DriverID))
+	}
+
 	class, err := uc.repo.Class.Where(filter...).
 		Preload(uc.repo.Class.Schedules.On(
 			uc.repo.Schedule.Date.Between(req.FromDate, req.ToDate))).
@@ -112,7 +120,10 @@ func (uc *useCase) ListClasses(ctx context.Context, req *ListClassesRequest) (*L
 		filter = append(filter, uc.repo.Class.AgeGroup.Eq(req.AgeGroup))
 	}
 
-	classes, err := uc.repo.Class.Where(filter...).Limit(req.Limit).Offset((req.Page - 1) * req.Limit).
+	classes, err := uc.repo.Class.
+		Where(filter...).
+		Limit(req.Limit).
+		Offset((req.Page - 1) * req.Limit).
 		Find()
 	if err != nil {
 		logger.Error(op, " list class error: ", err)
@@ -170,7 +181,9 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 		return nil, errs.E(op, errs.Database, err)
 	}
 
-	return &CheckInOutResponse{}, nil
+	return &CheckInOutResponse{
+		Status: "OK",
+	}, nil
 }
 
 func (uc *useCase) ListMembersInClass(ctx context.Context, req *ListMembersInClassRequest) (*ListMembersInClassResponse, error) {
@@ -183,7 +196,7 @@ func (uc *useCase) ListMembersInClass(ctx context.Context, req *ListMembersInCla
 		uc.repo.User.Username.EqCol(uc.repo.UserClass.Username),
 	).Where(
 		uc.repo.UserClass.ClassID.Eq(req.ClassID),
-		uc.repo.UserClass.Status.Eq("studying"),
+		uc.repo.UserClass.Status.Eq(string(entity.UserClassStatusStudying)),
 	).Find()
 	if err != nil {
 		logger.Error(op, " get users errors ", err)
@@ -251,4 +264,25 @@ func (uc *useCase) RemoveMembersFromClass(ctx context.Context, req *RemoveMember
 	}
 
 	return &RemoveMembersFromClassResponse{}, nil
+}
+
+func (uc *useCase) CheckInOutHistories(ctx context.Context, req *CheckInOutHistoriesRequest) (*CheckInOutHistoriesResponse, error) {
+	const op errs.Op = "class.useCase.CheckInOutHistories"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	checkInOuts, err := uc.repo.CheckInOut.Where(
+		uc.repo.CheckInOut.ClassID.Eq(req.ClassID),
+		uc.repo.CheckInOut.Date.Eq(req.Date),
+	).Find()
+	if err != nil {
+		logger.Error(op, " get check in out errors ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &CheckInOutHistoriesResponse{
+		Histories: toCheckInOutHistoriesResponse(checkInOuts),
+	}, nil
 }
