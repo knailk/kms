@@ -9,10 +9,11 @@ import (
 
 type Class struct {
 	ID        uuid.UUID `gorm:"primaryKey"`
-	TeacherID string    `gorm:"index"`
+	TeacherID string
 	DriverID  string
 	FromDate  int64
 	ToDate    int64
+	Status    string
 	ClassName string
 	AgeGroup  int
 	Price     float64

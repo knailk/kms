@@ -171,10 +171,10 @@ func autoMigrate(db *gorm.DB) {
 		// entity.User{},
 		// entity.ChatMessage{},
 		// entity.ChatParticipant{},
-		entity.ChatSession{},
+		// entity.ChatSession{},
 		// entity.CheckInOut{},
-		// entity.Class{},
+		entity.Class{},
 		// entity.Schedule{},
-		entity.UserClass{},
+		// entity.UserClass{},
 	)
 }
