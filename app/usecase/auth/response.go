@@ -15,6 +15,8 @@ type LoginResponse struct {
 	BirthDate    time.Time     `json:"birthDate"`
 	PictureURL   string        `json:"pictureURL"`
 	Address      string        `json:"address"`
+	Longitude    float64       `json:"longitude"`
+	Latitude     float64       `json:"latitude"`
 	AccessToken  authjwt.Token `json:"-"`
 	RefreshToken authjwt.Token `json:"-"`
 }

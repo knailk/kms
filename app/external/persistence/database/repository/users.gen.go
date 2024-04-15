@@ -38,6 +38,8 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.PhoneNumber = field.NewString(tableName, "phone_number")
 	_user.PictureURL = field.NewString(tableName, "picture_url")
 	_user.Address = field.NewString(tableName, "address")
+	_user.Latitude = field.NewFloat64(tableName, "latitude")
+	_user.Longitude = field.NewFloat64(tableName, "longitude")
 	_user.CreatedAt = field.NewTime(tableName, "created_at")
 	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_user.IsDeleted = field.NewBool(tableName, "is_deleted")
@@ -61,6 +63,8 @@ type user struct {
 	PhoneNumber field.String
 	PictureURL  field.String
 	Address     field.String
+	Latitude    field.Float64
+	Longitude   field.Float64
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
 	IsDeleted   field.Bool
@@ -90,6 +94,8 @@ func (u *user) updateTableName(table string) *user {
 	u.PhoneNumber = field.NewString(table, "phone_number")
 	u.PictureURL = field.NewString(table, "picture_url")
 	u.Address = field.NewString(table, "address")
+	u.Latitude = field.NewFloat64(table, "latitude")
+	u.Longitude = field.NewFloat64(table, "longitude")
 	u.CreatedAt = field.NewTime(table, "created_at")
 	u.UpdatedAt = field.NewTime(table, "updated_at")
 	u.IsDeleted = field.NewBool(table, "is_deleted")
@@ -109,7 +115,7 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 13)
+	u.fieldMap = make(map[string]field.Expr, 15)
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["password"] = u.Password
 	u.fieldMap["role"] = u.Role
@@ -120,6 +126,8 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["phone_number"] = u.PhoneNumber
 	u.fieldMap["picture_url"] = u.PictureURL
 	u.fieldMap["address"] = u.Address
+	u.fieldMap["latitude"] = u.Latitude
+	u.fieldMap["longitude"] = u.Longitude
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 	u.fieldMap["is_deleted"] = u.IsDeleted

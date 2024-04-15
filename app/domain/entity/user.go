@@ -35,6 +35,12 @@ type User struct {
 	// Address: The person's address.
 	Address string
 
+	// Latitude: The person's latitude.
+	Latitude float64
+
+	// Longitude: The person's longitude.
+	Longitude float64
+
 	// CreatedAt: The time the User was created.
 	CreatedAt time.Time `gorm:"type:timestamp;default:now()"`
 

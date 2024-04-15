@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS public.users
     phone_number text COLLATE pg_catalog."default",
     picture_url text COLLATE pg_catalog."default",
     address text COLLATE pg_catalog."default",
+    latitude numeric,
+    longitude numeric,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     is_deleted boolean DEFAULT false,

@@ -32,6 +32,7 @@ func newClass(db *gorm.DB, opts ...gen.DOOption) class {
 	_class.DriverID = field.NewString(tableName, "driver_id")
 	_class.FromDate = field.NewInt64(tableName, "from_date")
 	_class.ToDate = field.NewInt64(tableName, "to_date")
+	_class.Status = field.NewString(tableName, "status")
 	_class.ClassName = field.NewString(tableName, "class_name")
 	_class.AgeGroup = field.NewInt(tableName, "age_group")
 	_class.Price = field.NewFloat64(tableName, "price")
@@ -65,6 +66,7 @@ type class struct {
 	DriverID  field.String
 	FromDate  field.Int64
 	ToDate    field.Int64
+	Status    field.String
 	ClassName field.String
 	AgeGroup  field.Int
 	Price     field.Float64
@@ -96,6 +98,7 @@ func (c *class) updateTableName(table string) *class {
 	c.DriverID = field.NewString(table, "driver_id")
 	c.FromDate = field.NewInt64(table, "from_date")
 	c.ToDate = field.NewInt64(table, "to_date")
+	c.Status = field.NewString(table, "status")
 	c.ClassName = field.NewString(table, "class_name")
 	c.AgeGroup = field.NewInt(table, "age_group")
 	c.Price = field.NewFloat64(table, "price")
@@ -119,12 +122,13 @@ func (c *class) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *class) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 14)
+	c.fieldMap = make(map[string]field.Expr, 15)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["teacher_id"] = c.TeacherID
 	c.fieldMap["driver_id"] = c.DriverID
 	c.fieldMap["from_date"] = c.FromDate
 	c.fieldMap["to_date"] = c.ToDate
+	c.fieldMap["status"] = c.Status
 	c.fieldMap["class_name"] = c.ClassName
 	c.fieldMap["age_group"] = c.AgeGroup
 	c.fieldMap["price"] = c.Price
