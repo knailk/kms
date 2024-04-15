@@ -32,9 +32,12 @@ func (uc *useCase) CreateClass(ctx context.Context, req *CreateClassRequest) (*C
 		return nil, errs.E(op, errKind, "Validate request error")
 	}
 
+	classID := uuid.New()
 	schedules := make([]entity.Schedule, 0)
 	for _, s := range req.Schedules {
 		schedules = append(schedules, entity.Schedule{
+			ID:       uuid.New(),
+			ClassID:  classID,
 			FromTime: s.FromTime,
 			ToTime:   s.ToTime,
 			Action:   s.Action,
@@ -43,7 +46,7 @@ func (uc *useCase) CreateClass(ctx context.Context, req *CreateClassRequest) (*C
 	}
 
 	err := uc.repo.Class.Create(&entity.Class{
-		ID:        uuid.New(),
+		ID:        classID,
 		TeacherID: req.TeacherID,
 		DriverID:  req.DriverID,
 		FromDate:  req.FromDate,
