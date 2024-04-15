@@ -39,6 +39,7 @@ func (uc *useCase) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserRe
 		Address:     user.Address,
 		Longitude:   *user.Longitude,
 		Latitude:    *user.Latitude,
+		CreatedAt:   user.CreatedAt,
 	}, nil
 }
 

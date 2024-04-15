@@ -16,6 +16,7 @@ type GetUserResponse struct {
 	Address     string    `json:"address"`
 	Longitude   float64   `json:"longitude"`
 	Latitude    float64   `json:"latitude"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type UpdateUserResponse struct{}

@@ -23,5 +23,6 @@ func toUser(user *entity.User) *GetUserResponse {
 		Address:     user.Address,
 		Longitude:   *user.Longitude,
 		Latitude:    *user.Latitude,
+		CreatedAt:   user.CreatedAt,
 	}
 }

@@ -55,6 +55,7 @@ func (uc *useCase) Login(ctx context.Context, req *LoginRequest) (*LoginResponse
 		Address:      user.Address,
 		Longitude:    *user.Longitude,
 		Latitude:     *user.Latitude,
+		CreatedAt:    user.CreatedAt,
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 	}, nil
