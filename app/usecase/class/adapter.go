@@ -25,6 +25,7 @@ func toGetClassResponse(class *entity.Class) *GetClassResponse {
 		DriverID:  class.DriverID,
 		FromDate:  class.FromDate,
 		ToDate:    class.ToDate,
+		Status:    class.Status,
 		ClassName: class.ClassName,
 		AgeGroup:  class.AgeGroup,
 		Price:     class.Price,

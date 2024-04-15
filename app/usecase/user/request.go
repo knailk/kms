@@ -20,8 +20,8 @@ type UpdateUserRequest struct {
 	BirthDate   time.Time `json:"birthDate"`
 	PictureURL  string    `json:"pictureURL"`
 	Address     string    `json:"address"`
-	Longitude   float64   `json:"longitude"`
-	Latitude    float64   `json:"latitude"`
+	Longitude   *float64  `json:"longitude"`
+	Latitude    *float64  `json:"latitude"`
 	IsDeleted   bool      `json:"isDeleted"`
 }
 
@@ -30,7 +30,7 @@ func (r *UpdateUserRequest) Validate() errs.Kind {
 		return errs.InvalidRequest
 	}
 
-	if r.Password == "" && r.FullName == "" && r.Gender == "" && r.PhoneNumber == "" && r.Email == "" && r.BirthDate.IsZero() && r.PictureURL == "" && r.Address == "" && !r.IsDeleted && r.Longitude == 0 && r.Latitude == 0 {
+	if r.Password == "" && r.FullName == "" && r.Gender == "" && r.PhoneNumber == "" && r.Email == "" && r.BirthDate.IsZero() && r.PictureURL == "" && r.Address == "" && !r.IsDeleted && r.Longitude == nil && r.Latitude == nil {
 		return errs.InvalidRequest
 	}
 

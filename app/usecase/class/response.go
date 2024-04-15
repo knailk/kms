@@ -14,6 +14,7 @@ type GetClassResponse struct {
 	DriverID  string             `json:"driverID"`
 	FromDate  int64              `json:"fromDate"`
 	ToDate    int64              `json:"toDate"`
+	Status    string             `json:"status"`
 	ClassName string             `json:"className"`
 	AgeGroup  int                `json:"ageGroup"`
 	Price     float64            `json:"price"`

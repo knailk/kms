@@ -21,7 +21,7 @@ func toUser(user *entity.User) *GetUserResponse {
 		PhoneNumber: user.PhoneNumber,
 		PictureURL:  user.PictureURL,
 		Address:     user.Address,
-		Longitude:   user.Longitude,
-		Latitude:    user.Latitude,
+		Longitude:   *user.Longitude,
+		Latitude:    *user.Latitude,
 	}
 }

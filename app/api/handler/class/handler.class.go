@@ -54,7 +54,7 @@ func (h *handler) GetClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, class)
 }
 
-// common
+// admin
 func (h *handler) ListClasses(ctx *gin.Context) {
 	const op errs.Op = "handler.auth.ListClasses"
 
