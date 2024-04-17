@@ -20,5 +20,5 @@ const (
 	UserClassStatusJoined    UserClassStatus = "joined"
 	UserClassStatusStudying  UserClassStatus = "studying"
 	UserClassStatusComplete  UserClassStatus = "complete"
-	UserClassStatusCancelled UserClassStatus = "cancelled"
+	UserClassStatusCanceled UserClassStatus = "canceled"
 )

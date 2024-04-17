@@ -46,8 +46,14 @@ type CheckInOutResponse struct {
 type ListUsersInClass struct{}
 
 type GetUserInClass struct {
-	Username string `json:"username"`
-	FullName string `json:"fullName"`
+	Username    string    `json:"username"`
+	FullName    string    `json:"fullName"`
+	PictureURL  string    `json:"avatar"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phoneNumber"`
+	Address     string    `json:"address"`
+	Status      string    `json:"status"`
+	JoinedAt    time.Time `json:"joinedAt"`
 }
 
 type ListMembersInClassResponse struct {

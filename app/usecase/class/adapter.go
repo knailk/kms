@@ -46,7 +46,7 @@ func toScheduleResponse(s entity.Schedule) ScheduleResponse {
 }
 
 func toUsersInClass(users []*entity.User) []*GetUserInClass {
-	var usersInClass []*GetUserInClass
+	usersInClass := make([]*GetUserInClass, 0)
 	for _, user := range users {
 		usersInClass = append(usersInClass, toUserInClass(user))
 	}
@@ -55,8 +55,11 @@ func toUsersInClass(users []*entity.User) []*GetUserInClass {
 
 func toUserInClass(user *entity.User) *GetUserInClass {
 	return &GetUserInClass{
-		Username: user.Username,
-		FullName: user.FullName,
+		Username:    user.Username,
+		FullName:    user.FullName,
+		PictureURL:  user.PictureURL,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
 	}
 }
 

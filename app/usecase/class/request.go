@@ -37,7 +37,7 @@ type ScheduleRequest struct {
 type GetClassRequest struct {
 	TeacherID string    `form:"-"`
 	DriverID  string    `form:"-"`
-	ID        uuid.UUID `form:"id"`
+	ID        uuid.UUID `form:"-"`
 	FromDate  int64     `form:"fromDate"`
 	ToDate    int64     `form:"toDate"`
 }

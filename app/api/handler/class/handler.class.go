@@ -45,6 +45,9 @@ func (h *handler) GetClass(ctx *gin.Context) {
 		req.DriverID = userClaims.Username
 	}
 
+	_id, _ := uuid.Parse(ctx.Query("id"))
+	req.ID = _id
+
 	class, err := h.uc.GetClass(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, err))
@@ -56,7 +59,7 @@ func (h *handler) GetClass(ctx *gin.Context) {
 
 // admin
 func (h *handler) ListClasses(ctx *gin.Context) {
-	const op errs.Op = "handler.auth.ListClasses"
+	const op errs.Op = "handler.class.ListClasses"
 
 	var req class.ListClassesRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {

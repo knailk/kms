@@ -191,23 +191,25 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 
 func (uc *useCase) ListMembersInClass(ctx context.Context, req *ListMembersInClassRequest) (*ListMembersInClassResponse, error) {
 	const op errs.Op = "class.useCase.ListUsersInClass"
-	users, err := uc.repo.User.Select(
-		uc.repo.User.Username,
-		uc.repo.User.FullName,
+
+	rep := make([]*GetUserInClass, 0)
+	err := uc.repo.User.Select(
+		uc.repo.User.ALL,
+		uc.repo.UserClass.Status,
+		uc.repo.UserClass.CreatedAt.As("joined_at"),
 	).LeftJoin(
 		uc.repo.UserClass,
 		uc.repo.User.Username.EqCol(uc.repo.UserClass.Username),
 	).Where(
 		uc.repo.UserClass.ClassID.Eq(req.ClassID),
-		uc.repo.UserClass.Status.Eq(string(entity.UserClassStatusStudying)),
-	).Find()
+	).Scan(&rep)
 	if err != nil {
 		logger.Error(op, " get users errors ", err)
 		return nil, errs.E(op, errs.Database, err)
 	}
 
 	return &ListMembersInClassResponse{
-		Users: toUsersInClass(users),
+		Users: rep,
 	}, nil
 }
 
@@ -230,7 +232,7 @@ func (uc *useCase) AddMembersToClass(ctx context.Context, req *AddMembersToClass
 		usersClass = append(usersClass, &entity.UserClass{
 			Username: user,
 			ClassID:  req.ClassID,
-			Status:   string(entity.UserClassStatusJoined),
+			Status:   string(entity.UserClassStatusStudying),
 		})
 	}
 
@@ -260,7 +262,7 @@ func (uc *useCase) RemoveMembersFromClass(ctx context.Context, req *RemoveMember
 			uc.repo.UserClass.Username.In(req.Usernames...),
 			uc.repo.UserClass.ClassID.Eq(req.ClassID),
 		).
-		Update(uc.repo.UserClass.Status, entity.UserClassStatusCancelled)
+		Update(uc.repo.UserClass.Status, entity.UserClassStatusCanceled)
 	if err != nil {
 		logger.Error(op, " delete user class errors ", err)
 		return nil, errs.E(op, errs.Database, err)
