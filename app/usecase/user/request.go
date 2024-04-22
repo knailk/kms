@@ -38,5 +38,14 @@ func (r *UpdateUserRequest) Validate() errs.Kind {
 }
 
 type SearchUserRequest struct {
-	Keyword string `form:"keyword"`
+	Keyword string   `form:"keyword"`
+	Roles   []string `form:"roles"`
+}
+
+func (r *SearchUserRequest) Validate() errs.Kind {
+	if r.Keyword == "" {
+		return errs.InvalidRequest
+	}
+
+	return errs.Other
 }

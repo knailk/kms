@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"gorm.io/gen"
 	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/external/persistence/database/repository"
@@ -90,13 +91,29 @@ func (uc *useCase) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*Upd
 func (uc *useCase) SearchUser(ctx context.Context, req *SearchUserRequest) (*SearchUserResponse, error) {
 	const op errs.Op = "auth.useCase.SearchUser"
 
+	errKind := req.Validate()
+	if errKind != errs.Other {
+		logger.Error("validate request failed")
+		return nil, errs.E(op, errKind, "validate request failed")
+	}
+
+	u := uc.repo.User
+	var cond gen.Condition
+
+	if len(req.Roles) > 0 {
+		cond = gen.Condition(u.Role.In(req.Roles...))
+	}
+
 	likeKeyword := "%" + req.Keyword + "%"
-	users, err := uc.repo.User.
-		Where(uc.repo.User.Username.Like(likeKeyword)).
-		Or(uc.repo.User.FullName.Like(likeKeyword)).
-		Or(uc.repo.User.Email.Like(likeKeyword)).
-		Limit(10).
-		Find()
+	query := u.
+		Where(
+			u.Where(cond).Where(
+				u.Where(u.Username.Like(likeKeyword)).
+					Or(u.FullName.Like(likeKeyword)).
+					Or(u.Email.Like(likeKeyword))),
+		).Limit(10)
+
+	users, err := query.Find()
 	if err != nil {
 		return nil, errs.E(op, err)
 	}
