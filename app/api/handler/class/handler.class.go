@@ -163,8 +163,8 @@ func (h *handler) RemoveMembersFromClass(ctx *gin.Context) {
 	const op errs.Op = "handler.class.RemoveMembersFromClass"
 
 	var req class.RemoveMembersFromClassRequest
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		msg := "bind query error: " + err.Error()
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		msg := "bind json error: " + err.Error()
 		logger.Error(msg)
 		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
 		return

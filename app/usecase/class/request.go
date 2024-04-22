@@ -96,8 +96,8 @@ func (a *AddMembersToClassRequest) Validate() errs.Kind {
 }
 
 type RemoveMembersFromClassRequest struct {
-	ClassID   uuid.UUID `form:"-"`
-	Usernames []string  `form:"usernames"`
+	ClassID   uuid.UUID `json:"-"`
+	Usernames []string  `json:"usernames"`
 }
 
 func (r *RemoveMembersFromClassRequest) Validate() errs.Kind {
