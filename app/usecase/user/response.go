@@ -24,3 +24,11 @@ type UpdateUserResponse struct{}
 type SearchUserResponse struct {
 	Users []*GetUserResponse `json:"users"`
 }
+
+type ListTeachersAvailableResponse struct {
+	Teachers []*GetUserResponse `json:"teachers"`
+}
+
+type ListDriversAvailableResponse struct {
+	Drivers []*GetUserResponse `json:"drivers"`
+}

@@ -49,3 +49,7 @@ func (r *SearchUserRequest) Validate() errs.Kind {
 
 	return errs.Other
 }
+
+type ListTeachersAvailableRequest struct{}
+
+type ListDriversAvailableRequest struct{}

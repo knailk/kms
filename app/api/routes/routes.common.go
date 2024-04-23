@@ -61,6 +61,8 @@ func newCommonRoute(
 		V1UserRoute.GET("/me", userHdl.GetProfile)
 		V1UserRoute.PUT("/me", userHdl.UpdateUser)
 		V1UserRoute.GET("", userHdl.SearchUser)
+		V1UserRoute.GET("/teacher-available", userHdl.ListTeachersAvailable)
+		V1UserRoute.GET("/driver-available", userHdl.ListDriversAvailable)
 	}
 	classHdl := class.NewHandler(
 		registry.InjectedClassUseCase(ctx, provider),

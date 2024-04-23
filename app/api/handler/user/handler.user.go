@@ -80,3 +80,27 @@ func (h *handler) SearchUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, res)
 }
+
+func (h *handler) ListTeachersAvailable(ctx *gin.Context) {
+	const op errs.Op = "handler.user.ListTeachersAvailable"
+
+	res, err := h.uc.ListTeachersAvailable(ctx, &user.ListTeachersAvailableRequest{})
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (h *handler) ListDriversAvailable(ctx *gin.Context) {
+	const op errs.Op = "handler.user.ListDriversAvailable"
+
+	res, err := h.uc.ListDriversAvailable(ctx, &user.ListDriversAvailableRequest{})
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}

@@ -2,12 +2,13 @@ package user
 
 import (
 	"context"
-	"gorm.io/gen"
 	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/external/persistence/database/repository"
 	"kms/pkg/helpers"
 	"kms/pkg/logger"
+
+	"gorm.io/gen"
 )
 
 type useCase struct {
@@ -115,10 +116,53 @@ func (uc *useCase) SearchUser(ctx context.Context, req *SearchUserRequest) (*Sea
 
 	users, err := query.Find()
 	if err != nil {
+		logger.Error(op, " search user failed: ", err)
 		return nil, errs.E(op, err)
 	}
 
 	return &SearchUserResponse{
 		Users: toUsers(users),
+	}, nil
+}
+
+func (uc *useCase) ListTeachersAvailable(ctx context.Context, req *ListTeachersAvailableRequest) (*ListTeachersAvailableResponse, error) {
+	const op errs.Op = "auth.useCase.ListTeacherAvailable"
+
+	users, err := uc.repo.User.
+		LeftJoin(
+			uc.repo.Class,
+			uc.repo.Class.TeacherID.EqCol(uc.repo.User.Username),
+		).Where(
+		uc.repo.User.Role.Eq(entity.UserTypeTeacher),
+		uc.repo.Class.ID.IsNull(),
+	).Find()
+	if err != nil {
+		logger.Error(op, " list teacher available failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	return &ListTeachersAvailableResponse{
+		Teachers: toUsers(users),
+	}, nil
+}
+
+func (uc *useCase) ListDriversAvailable(ctx context.Context, req *ListDriversAvailableRequest) (*ListDriversAvailableResponse, error) {
+	const op errs.Op = "auth.useCase.ListDriversAvailable"
+
+	users, err := uc.repo.User.
+		LeftJoin(
+			uc.repo.Class,
+			uc.repo.Class.DriverID.EqCol(uc.repo.User.Username),
+		).Where(
+		uc.repo.User.Role.Eq(entity.UserTypeDriver),
+		uc.repo.Class.ID.IsNull(),
+	).Find()
+	if err != nil {
+		logger.Error(op, " list drivers available failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	return &ListDriversAvailableResponse{
+		Drivers: toUsers(users),
 	}, nil
 }
