@@ -73,3 +73,9 @@ type CheckInOutHistoryResponse struct {
 	Action   string `json:"action"`
 	Date     int64  `json:"date"`
 }
+
+type CreateScheduleResponse struct{}
+
+type UpdateScheduleResponse struct{}
+
+type DeleteScheduleResponse struct{}

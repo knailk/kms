@@ -45,21 +45,62 @@ func (uc *useCase) CreateClass(ctx context.Context, req *CreateClassRequest) (*C
 		})
 	}
 
-	err := uc.repo.Class.Create(&entity.Class{
-		ID:        classID,
-		TeacherID: req.TeacherID,
-		DriverID:  req.DriverID,
-		FromDate:  req.FromDate,
-		ToDate:    req.ToDate,
-		ClassName: req.ClassName,
-		AgeGroup:  req.AgeGroup,
-		Price:     req.Price,
-		Currency:  req.Currency,
-		Schedules: schedules,
+	err := uc.repo.Transaction(func(tx *repository.Query) error {
+		err := tx.Class.Create(&entity.Class{
+			ID:        classID,
+			TeacherID: req.TeacherID,
+			DriverID:  req.DriverID,
+			FromDate:  req.FromDate,
+			ToDate:    req.ToDate,
+			ClassName: req.ClassName,
+			AgeGroup:  req.AgeGroup,
+			Price:     req.Price,
+			Currency:  req.Currency,
+			Schedules: schedules,
+		})
+		if err != nil {
+			logger.Error(op, " create class error: ", err)
+			return errs.E(op, errs.Database, "create class error")
+		}
+
+		chatSessionID := uuid.New()
+
+		participants := []entity.ChatParticipant{
+			{
+				ID:            uuid.New(),
+				ChatSessionID: chatSessionID,
+				Username:      req.DriverID,
+				IsOwner:       false,
+			},
+			{
+				ID:            uuid.New(),
+				ChatSessionID: chatSessionID,
+				Username:      req.TeacherID,
+				IsOwner:       false,
+			},
+			{
+				ID:            uuid.New(),
+				ChatSessionID: chatSessionID,
+				Username:      req.UserRequested,
+				IsOwner:       true,
+			},
+		}
+
+		err = tx.ChatSession.Create(&entity.ChatSession{
+			ID:               chatSessionID,
+			Name:             req.ClassName,
+			ChatParticipants: participants,
+			ClassID:          &classID,
+		})
+		if err != nil {
+			logger.Error(op, err)
+			return errs.E(op, errs.Database, err)
+		}
+
+		return nil
 	})
 	if err != nil {
-		logger.Error(op, " create class error: ", err)
-		return nil, errs.E(op, errs.Database, "create class error")
+		return nil, err
 	}
 
 	return &CreateClassResponse{}, nil
@@ -227,25 +268,52 @@ func (uc *useCase) AddMembersToClass(ctx context.Context, req *AddMembersToClass
 		return nil, errs.E(op, errs.Database, err)
 	}
 
+	chat, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ClassID.Eq(req.ClassID)).First()
+	if err != nil {
+		logger.Error(op, " get class error ", err)
+		return nil, errs.E(op, errs.Database, err)
+	}
+
 	usersClass := make([]*entity.UserClass, 0)
+	usersChat := make([]*entity.ChatParticipant, 0)
 	for _, user := range usernames {
 		usersClass = append(usersClass, &entity.UserClass{
 			Username: user,
 			ClassID:  req.ClassID,
 			Status:   string(entity.UserClassStatusStudying),
 		})
+		usersChat = append(usersChat, &entity.ChatParticipant{
+			ID:            uuid.New(),
+			ChatSessionID: chat.ID,
+			Username:      user,
+			IsOwner:       false,
+		})
 	}
 
-	err = uc.repo.UserClass.Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "username"}, {Name: "class_id"}},
-			DoNothing: true,
-		},
-	).Create(usersClass...)
-	if err != nil {
-		logger.Error(op, " create user class errors ", err)
-		return nil, errs.E(op, errs.Database, err)
-	}
+	uc.repo.Transaction(func(tx *repository.Query) error {
+		err := tx.UserClass.Clauses(
+			clause.OnConflict{
+				Columns:   []clause.Column{{Name: "username"}, {Name: "class_id"}},
+				DoNothing: true,
+			},
+		).Create(usersClass...)
+		if err != nil {
+			logger.Error(op, " create user class errors ", err)
+			return errs.E(op, errs.Database, err)
+		}
+
+		err = tx.ChatParticipant.Clauses(
+			clause.OnConflict{
+				Columns:   []clause.Column{{Name: "username"}, {Name: "chat_session_id"}},
+				DoNothing: true,
+			},
+		).CreateInBatches(usersChat, 100)
+		if err != nil {
+			logger.Error(op, err)
+			return errs.E(op, errs.Database, err)
+		}
+		return nil
+	})
 
 	return &AddMemberToClassResponse{}, nil
 }
@@ -290,4 +358,68 @@ func (uc *useCase) CheckInOutHistories(ctx context.Context, req *CheckInOutHisto
 	return &CheckInOutHistoriesResponse{
 		Histories: toCheckInOutHistoriesResponse(checkInOuts),
 	}, nil
+}
+
+func (uc *useCase) CreateSchedule(ctx context.Context, req *CreateScheduleRequest) (*CreateScheduleResponse, error) {
+	const op errs.Op = "class.useCase.CreateSchedule"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	err := uc.repo.Schedule.Create(&entity.Schedule{
+		ID:       uuid.New(),
+		ClassID:  req.ClassID,
+		FromTime: req.FromTime,
+		ToTime:   req.ToTime,
+		Action:   req.Action,
+		Date:     req.Date,
+	})
+	if err != nil {
+		logger.Error(op, " create schedule error: ", err)
+		return nil, errs.E(op, errs.Database, "create schedule error")
+	}
+
+	return &CreateScheduleResponse{}, nil
+}
+
+func (uc *useCase) UpdateSchedule(ctx context.Context, req *UpdateScheduleRequest) (*UpdateScheduleResponse, error) {
+	const op errs.Op = "class.useCase.UpdateSchedule"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	_, err := uc.repo.Schedule.Where(
+		uc.repo.Schedule.ID.Eq(req.ID),
+	).Update(uc.repo.Schedule.Action, req.Action)
+	if err != nil {
+		logger.Error(op, " update schedule error: ", err)
+		return nil, errs.E(op, errs.Database, "update schedule error")
+	}
+
+	return &UpdateScheduleResponse{}, nil
+}
+
+func (uc *useCase) DeleteSchedule(ctx context.Context, req *DeleteScheduleRequest) (*DeleteScheduleResponse, error) {
+	const op errs.Op = "class.useCase.DeleteSchedule"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	info, err := uc.repo.Schedule.Where(
+		uc.repo.Schedule.ID.Eq(req.ID),
+	).Delete()
+	if err != nil {
+		logger.Error(op, " delete schedule error: ", err)
+		return nil, errs.E(op, errs.Database, "delete schedule error")
+	}
+
+	if info.RowsAffected == 0 {
+		logger.Error(op, " schedule not found")
+		return nil, errs.E(op, errs.NotExist, "schedule not found")
+	}
+
+	return &DeleteScheduleResponse{}, nil
 }

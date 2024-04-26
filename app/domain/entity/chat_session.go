@@ -14,6 +14,8 @@ type ChatSession struct {
 	LatestMessageID uuid.UUID
 	LatestMessage   *ChatMessage `gorm:"foreignKey:id;references:LatestMessageID"`
 
+	ClassID *uuid.UUID
+
 	ChatParticipants []ChatParticipant `gorm:"foreignKey:ChatSessionID"`
 	ChatMessages     []ChatMessage     `gorm:"foreignKey:ChatSessionID"`
 

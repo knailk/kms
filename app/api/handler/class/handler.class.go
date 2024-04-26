@@ -90,6 +90,10 @@ func (h *handler) CreateClass(ctx *gin.Context) {
 		return
 	}
 
+	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
+
+	req.UserRequested = userClaims.Username
+
 	res, err := h.uc.CreateClass(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, err))
@@ -211,6 +215,63 @@ func (h *handler) CheckInOut(ctx *gin.Context) {
 	req.ClassID = uuid.MustParse(ctx.Param("id"))
 
 	res, err := h.uc.CheckInOut(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+// admin
+func (h *handler) CreateSchedule(ctx *gin.Context) {
+	const op errs.Op = "handler.class.CreateSchedule"
+
+	var req class.CreateScheduleRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		msg := "bind json error: " + err.Error()
+		logger.Error(msg)
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
+		return
+	}
+
+	res, err := h.uc.CreateSchedule(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+// admin
+func (h *handler) UpdateSchedule(ctx *gin.Context) {
+	const op errs.Op = "handler.class.UpdateSchedule"
+
+	var req class.UpdateScheduleRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		msg := "bind json error: " + err.Error()
+		logger.Error(msg)
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
+		return
+	}
+
+	req.ID = uuid.MustParse(ctx.Param("id"))
+
+	res, err := h.uc.UpdateSchedule(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+// admin
+func (h *handler) DeleteSchedule(ctx *gin.Context) {
+	const op errs.Op = "handler.class.DeleteSchedule"
+
+	res, err := h.uc.DeleteSchedule(ctx, &class.DeleteScheduleRequest{ID: uuid.MustParse(ctx.Param("id"))})
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, err))
 		return

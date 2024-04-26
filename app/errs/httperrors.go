@@ -115,25 +115,13 @@ func typicalErrorResponse(ctx *gin.Context, e *Error) {
 }
 
 func newErrResponse(err *Error) ErrResponse {
-	const msg string = "internal server error - please contact support"
-
-	switch err.Kind {
-	case Internal, Database:
-		return ErrResponse{
-			Error: ServiceError{
-				Kind:    Internal.String(),
-				Message: msg,
-			},
-		}
-	default:
-		return ErrResponse{
-			Error: ServiceError{
-				Kind:    err.Kind.String(),
-				Code:    string(err.Code),
-				Param:   string(err.Param),
-				Message: err.Error(),
-			},
-		}
+	return ErrResponse{
+		Error: ServiceError{
+			Kind:    err.Kind.String(),
+			Code:    string(err.Code),
+			Param:   string(err.Param),
+			Message: err.Error(),
+		},
 	}
 }
 

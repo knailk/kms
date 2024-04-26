@@ -18,6 +18,8 @@ type CreateClassRequest struct {
 	Schedules []ScheduleRequest `json:"schedules"`
 	Price     float64           `json:"price"`
 	Currency  string            `json:"currency"`
+
+	UserRequested string `json:"-"`
 }
 
 func (c *CreateClassRequest) Validate() errs.Kind {
@@ -120,6 +122,46 @@ type CheckInOutHistoriesRequest struct {
 
 func (c *CheckInOutHistoriesRequest) Validate() errs.Kind {
 	if c.ClassID == uuid.Nil || c.Date == 0 {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
+type CreateScheduleRequest struct {
+	ClassID uuid.UUID `json:"classID"`
+
+	Action   string    `json:"action"`
+	FromTime time.Time `json:"fromTime"`
+	ToTime   time.Time `json:"toTime"`
+	Date     int64     `json:"date"`
+}
+
+func (c *CreateScheduleRequest) Validate() errs.Kind {
+	if c.ClassID == uuid.Nil || c.Action == "" || c.FromTime.IsZero() || c.ToTime.IsZero() || c.Date == 0 {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
+type UpdateScheduleRequest struct {
+	ID uuid.UUID `json:"-"`
+
+	Action string `json:"action"`
+}
+
+func (u *UpdateScheduleRequest) Validate() errs.Kind {
+	if u.ID == uuid.Nil || u.Action == "" {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
+type DeleteScheduleRequest struct {
+	ID uuid.UUID `json:"-"`
+}
+
+func (d *DeleteScheduleRequest) Validate() errs.Kind {
+	if d.ID == uuid.Nil {
 		return errs.InvalidRequest
 	}
 	return errs.Other

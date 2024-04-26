@@ -32,5 +32,9 @@ func newAdminRoute(
 		V1ClassRoute.DELETE("/:id", classHdl.DeleteClass)
 		V1ClassRoute.POST("/:id/members", classHdl.AddMembersToClass)
 		V1ClassRoute.DELETE("/:id/members", classHdl.RemoveMembersFromClass)
+
+		V1ClassRoute.POST("/schedules", classHdl.CreateSchedule)
+		V1ClassRoute.PUT("/schedules/:id", classHdl.UpdateSchedule)
+		V1ClassRoute.DELETE("/schedules/:id", classHdl.DeleteSchedule)
 	}
 }

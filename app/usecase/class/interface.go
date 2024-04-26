@@ -15,4 +15,8 @@ type IUseCase interface {
 
 	CheckInOut(ctx context.Context, req *CheckInOutRequest) (*CheckInOutResponse, error)
 	CheckInOutHistories(ctx context.Context, req *CheckInOutHistoriesRequest) (*CheckInOutHistoriesResponse, error)
+
+	CreateSchedule(ctx context.Context, req *CreateScheduleRequest) (*CreateScheduleResponse, error)
+	UpdateSchedule(ctx context.Context, req *UpdateScheduleRequest) (*UpdateScheduleResponse, error)
+	DeleteSchedule(ctx context.Context, req *DeleteScheduleRequest) (*DeleteScheduleResponse, error)
 }
