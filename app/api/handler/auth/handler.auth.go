@@ -103,26 +103,28 @@ func (h *handler) RegisterConfirm(ctx *gin.Context) {
 		return
 	}
 
-	rep, err := h.classUc.AddMembersToClass(ctx, &class.AddMembersToClassRequest{
-		ClassID:   confirmRep.ClassID,
-		Usernames: []string{confirmRep.Username},
-	})
-	if err != nil {
-		errs.HTTPErrorResponse(ctx, err)
-		return
+	if confirmRep.Status == entity.UserRequestedStatusApproved {
+		_, err = h.classUc.AddMembersToClass(ctx, &class.AddMembersToClassRequest{
+			ClassID:   confirmRep.ClassID,
+			Usernames: []string{confirmRep.Username},
+		})
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, err)
+			return
+		}
 	}
 
-	ctx.JSON(http.StatusOK, rep)
+	ctx.JSON(http.StatusOK, confirmRep)
 }
 
 func (h *handler) RegisterRequestList(ctx *gin.Context) {
 	const op errs.Op = "handler.auth.RegisterRequestList"
 
-	rep, err := h.uc.RegisterRequestList(ctx)
-	if err != nil {
-		errs.HTTPErrorResponse(ctx, err)
-		return
-	}
+	// rep, err := h.uc.RegisterRequestList(ctx)
+	// if err != nil {
+	// 	errs.HTTPErrorResponse(ctx, err)
+	// 	return
+	// }
 
-	ctx.JSON(http.StatusOK, rep)
+	ctx.JSON(http.StatusOK, "rep")
 }

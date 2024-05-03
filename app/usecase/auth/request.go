@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"kms/app/domain/entity"
 	"time"
 
 	"github.com/google/uuid"
@@ -34,6 +35,6 @@ type RegisterListRequest struct {
 }
 
 type RegisterConfirmRequest struct {
-	ID     uuid.UUID `json:"id"`
-	Action string    `json:"action"`
+	ID     uuid.UUID                  `json:"id"`
+	Action entity.UserRequestedStatus `json:"action"`
 }

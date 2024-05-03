@@ -94,14 +94,28 @@ func (uc *useCase) Refresh(ctx context.Context, req *RefreshRequest) (*RefreshRe
 func (uc *useCase) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	const op errs.Op = "auth.useCase.Register"
 
-	user, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).First()
+	countUser, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).Count()
 	if err != nil {
 		logger.Error(op, " find user failed: ", err)
 		return nil, errs.E(op, err)
 	}
 
-	if user.IsDeleted {
-		return nil, errs.E(op, errs.NotExist, "user is deleted")
+	if countUser > 0 {
+		return nil, errs.E(op, errs.Exist, "user already existed")
+	}
+
+	usersRequested, err := uc.repo.UserRequested.
+		Where(
+			uc.repo.UserRequested.Username.Eq(req.Username),
+			uc.repo.UserRequested.Status.Eq(string(entity.UserRequestedStatusPending)),
+		).Count()
+	if err != nil {
+		logger.Error(op, "count user requested errorL ", err)
+		return nil, errs.E(op, err)
+	}
+
+	if usersRequested > 0 {
+		return nil, errs.E(op, errs.Exist, "user request is pending")
 	}
 
 	hashedPassword, err := helpers.GenerateHash(req.Password)
@@ -146,26 +160,42 @@ func (uc *useCase) RegisterConfirm(ctx context.Context, req *RegisterConfirmRequ
 		return nil, errs.E(op, errs.InvalidRequest, "user is not pending")
 	}
 
-	err = uc.repo.User.Create(&entity.User{
-		Username:    userRequested.Username,
-		Password:    userRequested.Password,
-		Role:        entity.UserRoleStudent,
-		ParentName:  userRequested.ParentName,
-		FullName:    userRequested.FullName,
-		Gender:      userRequested.Gender,
-		Email:       userRequested.Email,
-		BirthDate:   userRequested.BirthDate,
-		PhoneNumber: userRequested.PhoneNumber,
-		PictureURL:  "https://i.pravatar.cc/300",
+	uc.repo.Transaction(func(tx *repository.Query) error {
+		if req.Action == entity.UserRequestedStatusApproved {
+			err = tx.User.Create(&entity.User{
+				Username:    userRequested.Username,
+				Password:    userRequested.Password,
+				Role:        entity.UserRoleStudent,
+				ParentName:  userRequested.ParentName,
+				FullName:    userRequested.FullName,
+				Gender:      userRequested.Gender,
+				Email:       userRequested.Email,
+				BirthDate:   userRequested.BirthDate,
+				PhoneNumber: userRequested.PhoneNumber,
+				PictureURL:  "https://i.pravatar.cc/300",
+			})
+			if err != nil {
+				logger.Error(op, " create user failed: ", err)
+				return errs.E(op, err)
+			}
+		}
+
+		_, err = tx.UserRequested.Where(uc.repo.UserRequested.ID.Eq(req.ID)).Update(uc.repo.UserRequested.Status, req.Action)
+		if err != nil {
+			logger.Error(op, " update user requested failed: ", err)
+			return errs.E(op, err)
+		}
+
+		return nil
 	})
 	if err != nil {
-		logger.Error(op, " create user failed: ", err)
-		return nil, errs.E(op, err, "create user failed")
+		return nil, err
 	}
 
 	return &RegisterConfirmResponse{
 		ClassID:  userRequested.ClassID,
 		Username: userRequested.Username,
+		Status:   req.Action,
 	}, nil
 }
 

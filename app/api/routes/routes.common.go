@@ -32,7 +32,21 @@ func newCommonRoute(
 		V1AuthRoute.POST("/register", authHdl.Register)
 	}
 
+	classHdl := class.NewHandler(
+		registry.InjectedClassUseCase(ctx, provider),
+		authCookie,
+	)
+	{
+		V1ClassRoute := apiV1Group.Group("/classes")
+		V1ClassRoute.GET("", classHdl.ListClasses)
+
+	}
+
+	// ------------------------------------ BEFORE LOGIN ------------------------------------
+
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeCommon))
+
+	// ------------------------------------ AFTER LOGIN ------------------------------------
 
 	{
 		V1AuthTokenRoute := apiV1Group.Group("/auth")
@@ -59,20 +73,16 @@ func newCommonRoute(
 		registry.InjectedUserUseCase(ctx, provider),
 		authCookie,
 	)
-	V1UserRoute := apiV1Group.Group("/profile")
 	{
+		V1UserRoute := apiV1Group.Group("/profile")
 		V1UserRoute.GET("/me", userHdl.GetProfile)
 		V1UserRoute.PUT("/me", userHdl.UpdateUser)
 		V1UserRoute.GET("", userHdl.SearchUser)
 		V1UserRoute.GET("/teacher-available", userHdl.ListTeachersAvailable)
 		V1UserRoute.GET("/driver-available", userHdl.ListDriversAvailable)
 	}
-	classHdl := class.NewHandler(
-		registry.InjectedClassUseCase(ctx, provider),
-		authCookie,
-	)
-	V1ClassRoute := apiV1Group.Group("/class")
 	{
+		V1ClassRoute := apiV1Group.Group("/class")
 		V1ClassRoute.GET("/me", classHdl.GetClass)
 		V1ClassRoute.GET("/:id/members", classHdl.ListMembersInClass)
 		V1ClassRoute.POST("/:id/members", classHdl.CheckInOut)

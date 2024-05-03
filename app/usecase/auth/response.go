@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"kms/app/domain/entity"
 	"kms/pkg/authjwt"
 	"time"
 
@@ -39,6 +40,7 @@ type RegisterListResponse struct {
 type RegisterConfirmResponse struct {
 	ClassID  uuid.UUID
 	Username string
+	Status   entity.UserRequestedStatus
 }
 
 type UserInfo struct{}
