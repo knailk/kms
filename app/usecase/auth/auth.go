@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/external/persistence/database/repository"
 	"kms/pkg/authjwt"
@@ -47,6 +48,7 @@ func (uc *useCase) Login(ctx context.Context, req *LoginRequest) (*LoginResponse
 		Username:     user.Username,
 		Email:        user.Email,
 		Role:         string(user.Role),
+		ParentName:   user.ParentName,
 		FullName:     user.FullName,
 		Gender:       user.Gender,
 		PhoneNumber:  user.PhoneNumber,
@@ -86,6 +88,84 @@ func (uc *useCase) Refresh(ctx context.Context, req *RefreshRequest) (*RefreshRe
 	return &RefreshResponse{
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
+	}, nil
+}
+
+func (uc *useCase) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+	const op errs.Op = "auth.useCase.Register"
+
+	user, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).First()
+	if err != nil {
+		logger.Error(op, " find user failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	if user.IsDeleted {
+		return nil, errs.E(op, errs.NotExist, "user is deleted")
+	}
+
+	hashedPassword, err := helpers.GenerateHash(req.Password)
+	if err != nil {
+		logger.Error(op, " failed to hash password: ", err)
+		return nil, errs.E(op, err, "failed to hash password")
+	}
+
+	// validate something else
+
+	err = uc.repo.UserRequested.Create(&entity.UserRequested{
+		ID:          uuid.New(),
+		Username:    req.Username,
+		FullName:    req.FullName,
+		ParentName:  req.ParentName,
+		Password:    hashedPassword,
+		Email:       req.Email,
+		PhoneNumber: req.PhoneNumber,
+		BirthDate:   req.BirthDate,
+		Gender:      req.Gender,
+		ClassID:     req.ClassID,
+		Status:      entity.UserRequestedStatusPending,
+	})
+	if err != nil {
+		logger.Error(op, " create user request failed: ", err)
+		return nil, errs.E(op, err, "create user request failed")
+	}
+
+	return &RegisterResponse{}, nil
+}
+
+func (uc *useCase) RegisterConfirm(ctx context.Context, req *RegisterConfirmRequest) (*RegisterConfirmResponse, error) {
+	const op errs.Op = "auth.useCase.RegisterConfirm"
+
+	userRequested, err := uc.repo.UserRequested.Where(uc.repo.UserRequested.ID.Eq(req.ID)).First()
+	if err != nil {
+		logger.Error(op, " find user failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	if userRequested.Status != entity.UserRequestedStatusPending {
+		return nil, errs.E(op, errs.InvalidRequest, "user is not pending")
+	}
+
+	err = uc.repo.User.Create(&entity.User{
+		Username:    userRequested.Username,
+		Password:    userRequested.Password,
+		Role:        entity.UserRoleStudent,
+		ParentName:  userRequested.ParentName,
+		FullName:    userRequested.FullName,
+		Gender:      userRequested.Gender,
+		Email:       userRequested.Email,
+		BirthDate:   userRequested.BirthDate,
+		PhoneNumber: userRequested.PhoneNumber,
+		PictureURL:  "https://i.pravatar.cc/300",
+	})
+	if err != nil {
+		logger.Error(op, " create user failed: ", err)
+		return nil, errs.E(op, err, "create user failed")
+	}
+
+	return &RegisterConfirmResponse{
+		ClassID:  userRequested.ClassID,
+		Username: userRequested.Username,
 	}, nil
 }
 

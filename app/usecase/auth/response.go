@@ -3,12 +3,15 @@ package auth
 import (
 	"kms/pkg/authjwt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type LoginResponse struct {
 	Username     string        `json:"username"`
 	Email        string        `json:"email"`
 	Role         string        `json:"role"`
+	ParentName   string        `json:"parentFullName"`
 	FullName     string        `json:"fullName"`
 	Gender       string        `json:"gender"`
 	PhoneNumber  string        `json:"phoneNumber"`
@@ -26,3 +29,16 @@ type RefreshResponse struct {
 	AccessToken  authjwt.Token `json:"-"`
 	RefreshToken authjwt.Token `json:"-"`
 }
+
+type RegisterResponse struct {
+}
+
+type RegisterListResponse struct {
+}
+
+type RegisterConfirmResponse struct {
+	ClassID  uuid.UUID
+	Username string
+}
+
+type UserInfo struct{}

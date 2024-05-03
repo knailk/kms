@@ -14,6 +14,7 @@ func toUser(user *entity.User) *GetUserResponse {
 	return &GetUserResponse{
 		Username:    user.Username,
 		FullName:    user.FullName,
+		ParentName:  user.ParentName,
 		Email:       user.Email,
 		Role:        string(user.Role),
 		Gender:      user.Gender,

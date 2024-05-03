@@ -22,10 +22,14 @@ func newCommonRoute(
 ) {
 	apiV1Group := router.Group(apiCommonV1)
 	// auth
-	authHdl := auth.NewHandler(registry.InjectedAuthUseCase(ctx, provider), authCookie)
+	authHdl := auth.NewHandler(
+		registry.InjectedAuthUseCase(ctx, provider),
+		registry.InjectedClassUseCase(ctx, provider),
+		authCookie)
 	{
 		V1AuthRoute := apiV1Group.Group("/auth")
 		V1AuthRoute.POST("/login", authHdl.Login)
+		V1AuthRoute.POST("/register", authHdl.Register)
 	}
 
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeCommon))
@@ -36,12 +40,11 @@ func newCommonRoute(
 		V1AuthTokenRoute.POST("/logout", authHdl.Logout)
 		// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)
 	}
-	// chat handler
-	chatHdl := chat.NewHandler(
-		registry.InjectedChatUseCase(ctx, provider),
-		authCookie,
-	)
 	{
+		chatHdl := chat.NewHandler(
+			registry.InjectedChatUseCase(ctx, provider),
+			authCookie,
+		)
 		V1ChatRoute := apiV1Group.Group("/chat")
 		V1ChatRoute.POST("", chatHdl.CreateChat)
 		V1ChatRoute.PUT("/member", chatHdl.AddMember)

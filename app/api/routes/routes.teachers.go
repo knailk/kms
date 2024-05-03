@@ -23,6 +23,7 @@ func newTeacherRoute(
 	// auth handler
 	authHdl := auth.NewHandler(
 		registry.InjectedAuthUseCase(ctx, provider),
+		registry.InjectedClassUseCase(ctx, provider),
 		authCookie,
 	)
 	// auth

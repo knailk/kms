@@ -34,6 +34,7 @@ func (uc *useCase) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserRe
 		Email:       user.Email,
 		Role:        string(user.Role),
 		FullName:    user.FullName,
+		ParentName:  user.ParentName,
 		Gender:      user.Gender,
 		PhoneNumber: user.PhoneNumber,
 		BirthDate:   user.BirthDate,
@@ -72,6 +73,7 @@ func (uc *useCase) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*Upd
 	_, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).Updates(&entity.User{
 		Password:    req.Password,
 		FullName:    req.FullName,
+		ParentName:  req.ParentName,
 		Gender:      req.Gender,
 		PhoneNumber: req.PhoneNumber,
 		BirthDate:   req.BirthDate,

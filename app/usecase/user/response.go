@@ -9,6 +9,7 @@ type GetUserResponse struct {
 	Email       string    `json:"email"`
 	Role        string    `json:"role,omitempty"`
 	FullName    string    `json:"fullName"`
+	ParentName  string    `json:"parentName"`
 	Gender      string    `json:"gender"`
 	PhoneNumber string    `json:"phoneNumber"`
 	BirthDate   time.Time `json:"birthDate"`

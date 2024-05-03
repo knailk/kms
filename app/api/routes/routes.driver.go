@@ -16,13 +16,14 @@ func newDriverRoute(
 	router *gin.Engine,
 	provider *registry.Provider,
 	authCookie base.AuthCookieHandler,
-	) {
+) {
 	apiV1Group := router.Group(apiDriverV1)
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeDriver))
 
 	// auth handler
 	authHdl := auth.NewHandler(
 		registry.InjectedAuthUseCase(ctx, provider),
+		registry.InjectedClassUseCase(ctx, provider),
 		authCookie,
 	)
 	// auth

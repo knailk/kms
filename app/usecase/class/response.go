@@ -48,6 +48,7 @@ type ListUsersInClass struct{}
 type GetUserInClass struct {
 	Username    string    `json:"username"`
 	FullName    string    `json:"fullName"`
+	ParentName  string    `json:"parentName"`
 	PictureURL  string    `json:"avatar"`
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phoneNumber"`

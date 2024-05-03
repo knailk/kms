@@ -14,6 +14,7 @@ type UpdateUserRequest struct {
 	OldPassword string    `json:"oldPassword"`
 	Password    string    `json:"password"`
 	FullName    string    `json:"fullName"`
+	ParentName  string    `json:"parentName"`
 	Gender      string    `json:"gender"`
 	PhoneNumber string    `json:"phoneNumber"`
 	Email       string    `json:"email"`
@@ -30,7 +31,7 @@ func (r *UpdateUserRequest) Validate() errs.Kind {
 		return errs.InvalidRequest
 	}
 
-	if r.Password == "" && r.FullName == "" && r.Gender == "" && r.PhoneNumber == "" && r.Email == "" && r.BirthDate.IsZero() && r.PictureURL == "" && r.Address == "" && !r.IsDeleted && r.Longitude == nil && r.Latitude == nil {
+	if r.Password == "" && r.FullName == "" && r.ParentName == "" && r.Gender == "" && r.PhoneNumber == "" && r.Email == "" && r.BirthDate.IsZero() && r.PictureURL == "" && r.Address == "" && !r.IsDeleted && r.Longitude == nil && r.Latitude == nil {
 		return errs.InvalidRequest
 	}
 

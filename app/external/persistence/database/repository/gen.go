@@ -25,6 +25,7 @@ var (
 	Schedule        *schedule
 	User            *user
 	UserClass       *userClass
+	UserRequested   *userRequested
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -37,6 +38,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Schedule = &Q.Schedule
 	User = &Q.User
 	UserClass = &Q.UserClass
+	UserRequested = &Q.UserRequested
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
@@ -50,6 +52,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		Schedule:        newSchedule(db, opts...),
 		User:            newUser(db, opts...),
 		UserClass:       newUserClass(db, opts...),
+		UserRequested:   newUserRequested(db, opts...),
 	}
 }
 
@@ -64,6 +67,7 @@ type Query struct {
 	Schedule        schedule
 	User            user
 	UserClass       userClass
+	UserRequested   userRequested
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -79,6 +83,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		Schedule:        q.Schedule.clone(db),
 		User:            q.User.clone(db),
 		UserClass:       q.UserClass.clone(db),
+		UserRequested:   q.UserRequested.clone(db),
 	}
 }
 
@@ -101,6 +106,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		Schedule:        q.Schedule.replaceDB(db),
 		User:            q.User.replaceDB(db),
 		UserClass:       q.UserClass.replaceDB(db),
+		UserRequested:   q.UserRequested.replaceDB(db),
 	}
 }
 
@@ -113,6 +119,7 @@ type queryCtx struct {
 	Schedule        IScheduleDo
 	User            IUserDo
 	UserClass       IUserClassDo
+	UserRequested   IUserRequestedDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
@@ -125,6 +132,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		Schedule:        q.Schedule.WithContext(ctx),
 		User:            q.User.WithContext(ctx),
 		UserClass:       q.UserClass.WithContext(ctx),
+		UserRequested:   q.UserRequested.WithContext(ctx),
 	}
 }
 

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS public.users
     password text COLLATE pg_catalog."default",
     role "UserRole",
     full_name text COLLATE pg_catalog."default",
+    parent_full_name text COLLATE pg_catalog."default",
     gender text COLLATE pg_catalog."default",
     email text COLLATE pg_catalog."default",
     birth_date timestamp with time zone,

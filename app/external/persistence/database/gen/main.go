@@ -20,6 +20,7 @@ func main() {
 	// Generate default DAO interface for those specified structs
 	g.ApplyBasic(
 		entity.User{},
+		entity.UserRequested{},
 		entity.ChatMessage{},
 		entity.ChatParticipant{},
 		entity.ChatSession{},

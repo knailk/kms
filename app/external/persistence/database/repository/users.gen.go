@@ -31,6 +31,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.Username = field.NewString(tableName, "username")
 	_user.Password = field.NewString(tableName, "password")
 	_user.Role = field.NewString(tableName, "role")
+	_user.ParentName = field.NewString(tableName, "parent_name")
 	_user.FullName = field.NewString(tableName, "full_name")
 	_user.Gender = field.NewString(tableName, "gender")
 	_user.Email = field.NewString(tableName, "email")
@@ -56,6 +57,7 @@ type user struct {
 	Username    field.String
 	Password    field.String
 	Role        field.String
+	ParentName  field.String
 	FullName    field.String
 	Gender      field.String
 	Email       field.String
@@ -87,6 +89,7 @@ func (u *user) updateTableName(table string) *user {
 	u.Username = field.NewString(table, "username")
 	u.Password = field.NewString(table, "password")
 	u.Role = field.NewString(table, "role")
+	u.ParentName = field.NewString(table, "parent_name")
 	u.FullName = field.NewString(table, "full_name")
 	u.Gender = field.NewString(table, "gender")
 	u.Email = field.NewString(table, "email")
@@ -115,10 +118,11 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 15)
+	u.fieldMap = make(map[string]field.Expr, 16)
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["password"] = u.Password
 	u.fieldMap["role"] = u.Role
+	u.fieldMap["parent_name"] = u.ParentName
 	u.fieldMap["full_name"] = u.FullName
 	u.fieldMap["gender"] = u.Gender
 	u.fieldMap["email"] = u.Email

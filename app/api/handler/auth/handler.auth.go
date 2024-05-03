@@ -5,6 +5,7 @@ import (
 	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/usecase/auth"
+	"kms/app/usecase/class"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +14,12 @@ import (
 type handler struct {
 	authCookie base.AuthCookieHandler
 
-	uc auth.IUseCase
+	uc      auth.IUseCase
+	classUc class.IUseCase
 }
 
-func NewHandler(uc auth.IUseCase, base base.AuthCookieHandler) *handler {
-	return &handler{uc: uc, authCookie: base}
+func NewHandler(uc auth.IUseCase, classUc class.IUseCase, base base.AuthCookieHandler) *handler {
+	return &handler{uc: uc, classUc: classUc, authCookie: base}
 }
 
 func (h *handler) Login(ctx *gin.Context) {
@@ -66,4 +68,61 @@ func (h *handler) Refresh(ctx *gin.Context) {
 func (h *handler) Logout(ctx *gin.Context) {
 	h.authCookie.ExpireJWTCookie(ctx)
 	ctx.JSON(http.StatusOK, "OK")
+}
+
+func (h *handler) Register(ctx *gin.Context) {
+	const op errs.Op = "handler.auth.Register"
+
+	var req auth.RegisterRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error: "+err.Error()))
+		return
+	}
+
+	rep, err := h.uc.Register(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rep)
+}
+
+func (h *handler) RegisterConfirm(ctx *gin.Context) {
+	const op errs.Op = "handler.auth.RegisterConfirm"
+
+	var req auth.RegisterConfirmRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error: "+err.Error()))
+		return
+	}
+
+	confirmRep, err := h.uc.RegisterConfirm(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	rep, err := h.classUc.AddMembersToClass(ctx, &class.AddMembersToClassRequest{
+		ClassID:   confirmRep.ClassID,
+		Usernames: []string{confirmRep.Username},
+	})
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rep)
+}
+
+func (h *handler) RegisterRequestList(ctx *gin.Context) {
+	const op errs.Op = "handler.auth.RegisterRequestList"
+
+	rep, err := h.uc.RegisterRequestList(ctx)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rep)
 }

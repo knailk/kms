@@ -14,6 +14,8 @@ type User struct {
 	// Role: The User's role in system
 	Role UserRole `gorm:"type:\"UserRole\""`
 
+	ParentName string
+
 	// FullName: The person's full name.
 	FullName string
 
