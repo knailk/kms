@@ -20,6 +20,8 @@ type UserRequested struct {
 	ClassID     uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+
+	Class *Class `gorm:"foreignKey:ClassID"`
 }
 
 type UserRequestedStatus string

@@ -169,6 +169,7 @@ func autoMigrate(db *gorm.DB) {
 	db.AutoMigrate(
 		// add more models here for auto migrate when update models
 		// entity.User{},
+		entity.UserRequested{},
 		// entity.ChatMessage{},
 		// entity.ChatParticipant{},
 		entity.ChatSession{},

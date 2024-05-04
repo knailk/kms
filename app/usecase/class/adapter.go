@@ -20,17 +20,18 @@ func toGetClassResponse(class *entity.Class) *GetClassResponse {
 	}
 
 	return &GetClassResponse{
-		ID:        class.ID,
-		TeacherID: class.TeacherID,
-		DriverID:  class.DriverID,
-		FromDate:  class.FromDate,
-		ToDate:    class.ToDate,
-		Status:    class.Status,
-		ClassName: class.ClassName,
-		AgeGroup:  class.AgeGroup,
-		Price:     class.Price,
-		Currency:  class.Currency,
-		Schedules: schedules,
+		ID:          class.ID,
+		TeacherID:   class.TeacherID,
+		DriverID:    class.DriverID,
+		FromDate:    class.FromDate,
+		ToDate:      class.ToDate,
+		Status:      class.Status,
+		Description: class.Description,
+		ClassName:   class.ClassName,
+		AgeGroup:    class.AgeGroup,
+		Price:       class.Price,
+		Currency:    class.Currency,
+		Schedules:   schedules,
 	}
 }
 
@@ -42,24 +43,6 @@ func toScheduleResponse(s entity.Schedule) ScheduleResponse {
 		ToTime:   s.ToTime,
 		Date:     s.Date,
 		Action:   s.Action,
-	}
-}
-
-func toUsersInClass(users []*entity.User) []*GetUserInClass {
-	usersInClass := make([]*GetUserInClass, 0)
-	for _, user := range users {
-		usersInClass = append(usersInClass, toUserInClass(user))
-	}
-	return usersInClass
-}
-
-func toUserInClass(user *entity.User) *GetUserInClass {
-	return &GetUserInClass{
-		Username:    user.Username,
-		FullName:    user.FullName,
-		PictureURL:  user.PictureURL,
-		Email:       user.Email,
-		PhoneNumber: user.PhoneNumber,
 	}
 }
 

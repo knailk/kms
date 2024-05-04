@@ -47,16 +47,17 @@ func (uc *useCase) CreateClass(ctx context.Context, req *CreateClassRequest) (*C
 
 	err := uc.repo.Transaction(func(tx *repository.Query) error {
 		err := tx.Class.Create(&entity.Class{
-			ID:        classID,
-			TeacherID: req.TeacherID,
-			DriverID:  req.DriverID,
-			FromDate:  req.FromDate,
-			ToDate:    req.ToDate,
-			ClassName: req.ClassName,
-			AgeGroup:  req.AgeGroup,
-			Price:     req.Price,
-			Currency:  req.Currency,
-			Schedules: schedules,
+			ID:          classID,
+			TeacherID:   req.TeacherID,
+			DriverID:    req.DriverID,
+			FromDate:    req.FromDate,
+			ToDate:      req.ToDate,
+			Description: req.Description,
+			ClassName:   req.ClassName,
+			AgeGroup:    req.AgeGroup,
+			Price:       req.Price,
+			Currency:    req.Currency,
+			Schedules:   schedules,
 		})
 		if err != nil {
 			logger.Error(op, " create class error: ", err)

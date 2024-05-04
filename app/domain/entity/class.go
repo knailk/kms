@@ -8,16 +8,17 @@ import (
 )
 
 type Class struct {
-	ID        uuid.UUID `gorm:"primaryKey"`
-	TeacherID string
-	DriverID  string
-	FromDate  int64
-	ToDate    int64
-	Status    string
-	ClassName string
-	AgeGroup  int
-	Price     float64
-	Currency  string // VND, USD, EUR, ...
+	ID          uuid.UUID `gorm:"primaryKey"`
+	TeacherID   string
+	DriverID    string
+	FromDate    int64
+	ToDate      int64
+	Description string
+	Status      string
+	ClassName   string
+	AgeGroup    int
+	Price       float64
+	Currency    string // VND, USD, EUR, ...
 
 	Schedules []Schedule `gorm:"foreignKey:ClassID"`
 

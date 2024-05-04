@@ -9,15 +9,16 @@ import (
 )
 
 type CreateClassRequest struct {
-	TeacherID string            `json:"teacherID"`
-	DriverID  string            `json:"driverID"`
-	FromDate  int64             `json:"fromDate"`
-	ToDate    int64             `json:"toDate"`
-	ClassName string            `json:"className"`
-	AgeGroup  int               `json:"ageGroup"`
-	Schedules []ScheduleRequest `json:"schedules"`
-	Price     float64           `json:"price"`
-	Currency  string            `json:"currency"`
+	TeacherID   string            `json:"teacherID"`
+	DriverID    string            `json:"driverID"`
+	FromDate    int64             `json:"fromDate"`
+	ToDate      int64             `json:"toDate"`
+	ClassName   string            `json:"className"`
+	AgeGroup    int               `json:"ageGroup"`
+	Schedules   []ScheduleRequest `json:"schedules"`
+	Price       float64           `json:"price"`
+	Currency    string            `json:"currency"`
+	Description string            `json:"description"`
 
 	UserRequested string `json:"-"`
 }

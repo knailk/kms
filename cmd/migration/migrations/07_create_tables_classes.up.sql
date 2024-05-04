@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS public.classes
     to_date bigint,
     class_name text COLLATE pg_catalog."default",
     status text,
+    description text,
     age_group bigint,
     price numeric,
     currency text COLLATE pg_catalog."default",
