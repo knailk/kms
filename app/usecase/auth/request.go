@@ -29,9 +29,9 @@ type RegisterRequest struct {
 }
 
 type RegisterListRequest struct {
-	Status string `json:"status"`
-	Limit  int    `json:"limit"`
-	Offset int    `json:"offset"`
+	Status string `form:"status"`
+	Limit  int    `form:"limit"`
+	Offset int    `form:"offset"`
 }
 
 type RegisterConfirmRequest struct {

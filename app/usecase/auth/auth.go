@@ -11,6 +11,8 @@ import (
 	"kms/pkg/logger"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/copier"
+	"gorm.io/gen"
 )
 
 type useCase struct {
@@ -196,6 +198,36 @@ func (uc *useCase) RegisterConfirm(ctx context.Context, req *RegisterConfirmRequ
 		ClassID:  userRequested.ClassID,
 		Username: userRequested.Username,
 		Status:   req.Action,
+	}, nil
+}
+
+func (uc *useCase) RegisterList(ctx context.Context, req *RegisterListRequest) (*RegisterListResponse, error) {
+	const op errs.Op = "auth.useCase.RegisterList"
+
+	var cond []gen.Condition
+
+	if req.Status != "" {
+		cond = append(cond, uc.repo.UserRequested.Status.Eq(req.Status))
+	}
+
+	query := uc.repo.UserRequested.Where(cond...)
+
+	if req.Limit > 0 {
+		query = query.Limit(req.Limit).Offset(req.Offset)
+	}
+
+	usersRequested, err := query.Preload(uc.repo.UserRequested.Class.Select(uc.repo.Class.ClassName, uc.repo.Class.ID)).Find()
+	if err != nil {
+		logger.Error(op, " find user requested failed: ", err)
+		return nil, errs.E(op, err)
+	}
+
+	var rep []*UserRequestedResponse
+
+	copier.CopyWithOption(&rep, &usersRequested, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+
+	return &RegisterListResponse{
+		RegisterList: rep,
 	}, nil
 }
 

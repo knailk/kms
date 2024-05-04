@@ -40,6 +40,21 @@ func newUserRequested(db *gorm.DB, opts ...gen.DOOption) userRequested {
 	_userRequested.ClassID = field.NewField(tableName, "class_id")
 	_userRequested.CreatedAt = field.NewTime(tableName, "created_at")
 	_userRequested.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_userRequested.Class = userRequestedBelongsToClass{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Class", "entity.Class"),
+		Schedules: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Class.Schedules", "entity.Schedule"),
+		},
+		User: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("Class.User", "entity.UserClass"),
+		},
+	}
 
 	_userRequested.fillFieldMap()
 
@@ -63,6 +78,7 @@ type userRequested struct {
 	ClassID     field.Field
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
+	Class       userRequestedBelongsToClass
 
 	fieldMap map[string]field.Expr
 }
@@ -108,7 +124,7 @@ func (u *userRequested) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (u *userRequested) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 13)
+	u.fieldMap = make(map[string]field.Expr, 14)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["full_name"] = u.FullName
@@ -122,6 +138,7 @@ func (u *userRequested) fillFieldMap() {
 	u.fieldMap["class_id"] = u.ClassID
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
+
 }
 
 func (u userRequested) clone(db *gorm.DB) userRequested {
@@ -132,6 +149,84 @@ func (u userRequested) clone(db *gorm.DB) userRequested {
 func (u userRequested) replaceDB(db *gorm.DB) userRequested {
 	u.userRequestedDo.ReplaceDB(db)
 	return u
+}
+
+type userRequestedBelongsToClass struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	Schedules struct {
+		field.RelationField
+	}
+	User struct {
+		field.RelationField
+	}
+}
+
+func (a userRequestedBelongsToClass) Where(conds ...field.Expr) *userRequestedBelongsToClass {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a userRequestedBelongsToClass) WithContext(ctx context.Context) *userRequestedBelongsToClass {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a userRequestedBelongsToClass) Session(session *gorm.Session) *userRequestedBelongsToClass {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a userRequestedBelongsToClass) Model(m *entity.UserRequested) *userRequestedBelongsToClassTx {
+	return &userRequestedBelongsToClassTx{a.db.Model(m).Association(a.Name())}
+}
+
+type userRequestedBelongsToClassTx struct{ tx *gorm.Association }
+
+func (a userRequestedBelongsToClassTx) Find() (result *entity.Class, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a userRequestedBelongsToClassTx) Append(values ...*entity.Class) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a userRequestedBelongsToClassTx) Replace(values ...*entity.Class) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a userRequestedBelongsToClassTx) Delete(values ...*entity.Class) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a userRequestedBelongsToClassTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a userRequestedBelongsToClassTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type userRequestedDo struct{ gen.DO }

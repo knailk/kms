@@ -29,7 +29,7 @@ func newAdminRoute(
 	{
 		V1AuthTokenRoute := apiV1Group.Group("/auth")
 		V1AuthTokenRoute.POST("/register-confirm", authHdl.RegisterConfirm)
-		V1AuthTokenRoute.POST("/register-request-list", authHdl.RegisterRequestList)
+		V1AuthTokenRoute.GET("/register-request-list", authHdl.RegisterRequestList)
 	}
 
 	classHdl := class.NewHandler(

@@ -6,6 +6,7 @@ import (
 	"kms/app/errs"
 	"kms/app/usecase/auth"
 	"kms/app/usecase/class"
+	"kms/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -120,11 +121,18 @@ func (h *handler) RegisterConfirm(ctx *gin.Context) {
 func (h *handler) RegisterRequestList(ctx *gin.Context) {
 	const op errs.Op = "handler.auth.RegisterRequestList"
 
-	// rep, err := h.uc.RegisterRequestList(ctx)
-	// if err != nil {
-	// 	errs.HTTPErrorResponse(ctx, err)
-	// 	return
-	// }
+	var req auth.RegisterListRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		msg := "bind query error: " + err.Error()
+		logger.Error(msg)
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
+		return
+	}
+	rep, err := h.uc.RegisterList(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
 
-	ctx.JSON(http.StatusOK, "rep")
+	ctx.JSON(http.StatusOK, rep)
 }
