@@ -201,7 +201,7 @@ func (uc *useCase) RegisterConfirm(ctx context.Context, req *RegisterConfirmRequ
 	}, nil
 }
 
-func (uc *useCase) RegisterList(ctx context.Context, req *RegisterListRequest) (*RegisterListResponse, error) {
+func (uc *useCase) RegisterRequestList(ctx context.Context, req *RegisterListRequest) (*RegisterListResponse, error) {
 	const op errs.Op = "auth.useCase.RegisterList"
 
 	var cond []gen.Condition

@@ -29,7 +29,7 @@ func newCommonRoute(
 	{
 		V1AuthRoute := apiV1Group.Group("/auth")
 		V1AuthRoute.POST("/login", authHdl.Login)
-		V1AuthRoute.POST("/register", authHdl.Register)
+		V1AuthRoute.POST("/register", authHdl.RegisterRequest)
 	}
 
 	classHdl := class.NewHandler(
@@ -39,7 +39,6 @@ func newCommonRoute(
 	{
 		V1ClassRoute := apiV1Group.Group("/classes")
 		V1ClassRoute.GET("", classHdl.ListClasses)
-
 	}
 
 	// ------------------------------------ BEFORE LOGIN ------------------------------------

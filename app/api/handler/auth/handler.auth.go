@@ -71,7 +71,7 @@ func (h *handler) Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "OK")
 }
 
-func (h *handler) Register(ctx *gin.Context) {
+func (h *handler) RegisterRequest(ctx *gin.Context) {
 	const op errs.Op = "handler.auth.Register"
 
 	var req auth.RegisterRequest
@@ -128,7 +128,7 @@ func (h *handler) RegisterRequestList(ctx *gin.Context) {
 		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
 		return
 	}
-	rep, err := h.uc.RegisterList(ctx, &req)
+	rep, err := h.uc.RegisterRequestList(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, err)
 		return
