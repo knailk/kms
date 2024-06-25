@@ -128,6 +128,7 @@ func (h *handler) RegisterRequestList(ctx *gin.Context) {
 		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, msg))
 		return
 	}
+
 	rep, err := h.uc.RegisterRequestList(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, err)

@@ -271,7 +271,7 @@ func (uc *useCase) AddMembersToClass(ctx context.Context, req *AddMembersToClass
 
 	chat, err := uc.repo.ChatSession.Where(uc.repo.ChatSession.ClassID.Eq(req.ClassID)).First()
 	if err != nil {
-		logger.Error(op, " get class error ", err)
+		logger.Error(op, " get chat session error ", err)
 		return nil, errs.E(op, errs.Database, err)
 	}
 

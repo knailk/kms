@@ -210,6 +210,12 @@ func (uc *useCase) RegisterRequestList(ctx context.Context, req *RegisterListReq
 		cond = append(cond, uc.repo.UserRequested.Status.Eq(req.Status))
 	}
 
+	if req.ClassID != "" {
+		if classID, err := uuid.Parse(req.ClassID); err == nil {
+			cond = append(cond, uc.repo.UserRequested.ClassID.Eq(classID))
+		}
+	}
+
 	query := uc.repo.UserRequested.Where(cond...)
 
 	if req.Limit > 0 {
