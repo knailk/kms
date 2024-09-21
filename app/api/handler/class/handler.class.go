@@ -45,6 +45,10 @@ func (h *handler) GetClass(ctx *gin.Context) {
 		req.DriverID = userClaims.Username
 	}
 
+	if userClaims.Role == string(entity.UserRoleStudent) {
+		req.StudentID = userClaims.Username
+	}
+
 	_id, _ := uuid.Parse(ctx.Query("id"))
 	req.ID = _id
 

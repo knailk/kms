@@ -107,3 +107,7 @@ func PanicF(message string, fields logrus.Fields) {
 func PanicFF(format string, fields logrus.Fields, args ...interface{}) {
 	log.WithFields(fields).Panicf(format, args...)
 }
+
+func WithError(err error) *logrus.Entry {
+	return log.WithError(err)
+}

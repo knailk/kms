@@ -1,37 +1,34 @@
 package logger
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
-// color
-const (
-	Red    = "41"
-	Yellow = "43"
-	Green  = "42"
-)
-
+// Function to log HTTP requests using logrus
 func HTTPLogger(param gin.LogFormatterParams) string {
-	var color string
+	log := logrus.WithFields(logrus.Fields{
+		"time":       param.TimeStamp.Format(time.RFC3339),
+		"status":     param.StatusCode,
+		"method":     param.Method,
+		"path":       param.Path,
+		"latency":    param.Latency,
+		"client_ip":  param.ClientIP,
+		"error":      param.ErrorMessage,
+		"user_agent": param.Request.UserAgent(),
+	})
+
+	// Determine log level based on status code
 	switch {
 	case param.StatusCode >= 500:
-		color = Red
+		log.Error("[LOGGING HTTP] Internal Server Error")
 	case param.StatusCode >= 400:
-		color = Yellow
+		log.Warn("[LOGGING HTTP] Client Error")
 	default:
-		color = Green
+		log.Info("[LOGGING HTTP] Success")
 	}
-	return fmt.Sprintf("[LOGGING HTTP] [%s] \033[%sm %d \033[0m %s %s %d %s %s %s\n",
-		param.TimeStamp.Format("2006-01-02 15:04:05"),
-		color,
-		param.StatusCode,
-		param.Method,
-		param.Path,
-		param.Latency,
-		param.ClientIP,
-		param.ErrorMessage,
-		param.Request.UserAgent(),
-	)
+
+	return ""
 }

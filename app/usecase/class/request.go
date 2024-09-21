@@ -40,13 +40,14 @@ type ScheduleRequest struct {
 type GetClassRequest struct {
 	TeacherID string    `form:"-"`
 	DriverID  string    `form:"-"`
+	StudentID string    `form:"-"`
 	ID        uuid.UUID `form:"-"`
 	FromDate  int64     `form:"fromDate"`
 	ToDate    int64     `form:"toDate"`
 }
 
 func (g *GetClassRequest) Validate() errs.Kind {
-	if g.ID == uuid.Nil && g.TeacherID == "" && g.DriverID == "" {
+	if g.ID == uuid.Nil && g.TeacherID == "" && g.DriverID == "" && g.StudentID == "" {
 		return errs.InvalidRequest
 	}
 	return errs.Other

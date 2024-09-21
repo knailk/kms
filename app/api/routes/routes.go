@@ -97,8 +97,8 @@ func initMiddlewares(router *gin.Engine, cfg *config.Config) {
 	// Recovery middleware (recover from panic)
 	middlewares = append(middlewares, mdlwRecovery.Recovery())
 
-	// Logger middleware that skips health check endpoint
-	middlewares = append(middlewares, gin.LoggerWithFormatter(logger.HTTPLogger))
+	// // Logger middleware that skips health check endpoint
+	// middlewares = append(middlewares, gin.LoggerWithFormatter(logger.HTTPLogger))
 
 	// Tracing middleware that enables tracing of requests
 	if cfg.Env == config.EnvProduction || cfg.Env == config.EnvStaging {

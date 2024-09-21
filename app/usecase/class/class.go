@@ -128,6 +128,21 @@ func (uc *useCase) GetClass(ctx context.Context, req *GetClassRequest) (*GetClas
 		filter = append(filter, uc.repo.Class.DriverID.Eq(req.DriverID))
 	}
 
+	if req.StudentID != "" {
+		studentClass, err := uc.repo.UserClass.
+			Where(
+				uc.repo.UserClass.Username.Eq(req.StudentID),
+				uc.repo.UserClass.Status.Eq(string(entity.UserClassStatusStudying))).
+			First()
+		if err != nil {
+			logger.WithError(err).Error(op, " get class error")
+			return nil, errs.E(op, errs.Database, "get class error")
+		}
+
+		filter = append(filter, uc.repo.Class.ID.Eq(studentClass.ClassID))
+
+	}
+
 	class, err := uc.repo.Class.Where(filter...).
 		Preload(uc.repo.Class.Schedules.On(
 			uc.repo.Schedule.Date.Between(req.FromDate, req.ToDate))).
