@@ -46,13 +46,13 @@ func toScheduleResponse(s entity.Schedule) ScheduleResponse {
 	}
 }
 
-func toCheckInOutHistoriesResponse(checkInOuts []*entity.CheckInOut) []*CheckInOutHistoryResponse {
+func toCheckInOutHistoriesResponse(userClasses []*entity.UserClass) []*CheckInOutHistoryResponse {
 	var responses []*CheckInOutHistoryResponse
-	for _, checkInOut := range checkInOuts {
+	for _, userClass := range userClasses {
 		responses = append(responses, &CheckInOutHistoryResponse{
-			Username: checkInOut.Username,
-			Action:   checkInOut.Action.String(),
-			Date:     checkInOut.Date,
+			Username: userClass.Username,
+			// Action:   userClass.Action.String(),
+			// Date:     userClass.Date,
 		})
 	}
 	return responses

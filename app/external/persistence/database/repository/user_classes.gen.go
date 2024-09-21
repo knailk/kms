@@ -27,11 +27,17 @@ func newUserClass(db *gorm.DB, opts ...gen.DOOption) userClass {
 
 	tableName := _userClass.userClassDo.TableName()
 	_userClass.ALL = field.NewAsterisk(tableName)
+	_userClass.ID = field.NewField(tableName, "id")
 	_userClass.Username = field.NewString(tableName, "username")
 	_userClass.ClassID = field.NewField(tableName, "class_id")
 	_userClass.Status = field.NewString(tableName, "status")
 	_userClass.CreatedAt = field.NewTime(tableName, "created_at")
 	_userClass.UpdatedAt = field.NewTime(tableName, "updated_at")
+	_userClass.CheckInOut = userClassHasManyCheckInOut{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("CheckInOut", "entity.CheckInOut"),
+	}
 
 	_userClass.fillFieldMap()
 
@@ -41,12 +47,14 @@ func newUserClass(db *gorm.DB, opts ...gen.DOOption) userClass {
 type userClass struct {
 	userClassDo
 
-	ALL       field.Asterisk
-	Username  field.String
-	ClassID   field.Field
-	Status    field.String
-	CreatedAt field.Time
-	UpdatedAt field.Time
+	ALL        field.Asterisk
+	ID         field.Field
+	Username   field.String
+	ClassID    field.Field
+	Status     field.String
+	CreatedAt  field.Time
+	UpdatedAt  field.Time
+	CheckInOut userClassHasManyCheckInOut
 
 	fieldMap map[string]field.Expr
 }
@@ -63,6 +71,7 @@ func (u userClass) As(alias string) *userClass {
 
 func (u *userClass) updateTableName(table string) *userClass {
 	u.ALL = field.NewAsterisk(table)
+	u.ID = field.NewField(table, "id")
 	u.Username = field.NewString(table, "username")
 	u.ClassID = field.NewField(table, "class_id")
 	u.Status = field.NewString(table, "status")
@@ -84,12 +93,14 @@ func (u *userClass) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *userClass) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 5)
+	u.fieldMap = make(map[string]field.Expr, 7)
+	u.fieldMap["id"] = u.ID
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["class_id"] = u.ClassID
 	u.fieldMap["status"] = u.Status
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
+
 }
 
 func (u userClass) clone(db *gorm.DB) userClass {
@@ -100,6 +111,77 @@ func (u userClass) clone(db *gorm.DB) userClass {
 func (u userClass) replaceDB(db *gorm.DB) userClass {
 	u.userClassDo.ReplaceDB(db)
 	return u
+}
+
+type userClassHasManyCheckInOut struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a userClassHasManyCheckInOut) Where(conds ...field.Expr) *userClassHasManyCheckInOut {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a userClassHasManyCheckInOut) WithContext(ctx context.Context) *userClassHasManyCheckInOut {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a userClassHasManyCheckInOut) Session(session *gorm.Session) *userClassHasManyCheckInOut {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a userClassHasManyCheckInOut) Model(m *entity.UserClass) *userClassHasManyCheckInOutTx {
+	return &userClassHasManyCheckInOutTx{a.db.Model(m).Association(a.Name())}
+}
+
+type userClassHasManyCheckInOutTx struct{ tx *gorm.Association }
+
+func (a userClassHasManyCheckInOutTx) Find() (result []*entity.CheckInOut, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a userClassHasManyCheckInOutTx) Append(values ...*entity.CheckInOut) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a userClassHasManyCheckInOutTx) Replace(values ...*entity.CheckInOut) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a userClassHasManyCheckInOutTx) Delete(values ...*entity.CheckInOut) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a userClassHasManyCheckInOutTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a userClassHasManyCheckInOutTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type userClassDo struct{ gen.DO }

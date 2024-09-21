@@ -7,18 +7,21 @@ import (
 )
 
 type UserClass struct {
-	Username  string    `gorm:"primaryKey"`
-	ClassID   uuid.UUID `gorm:"primaryKey"`
-	Status    string    // joined, studying, complete, ...etc
+	ID        uuid.UUID `gorm:"primaryKey"`
+	Username  string
+	ClassID   uuid.UUID
+	Status    string // joined, studying, complete, ...etc
 	CreatedAt time.Time
 	UpdatedAt time.Time
+
+	CheckInOut []CheckInOut `gorm:"foreignKey:UserClassID"`
 }
 
 type UserClassStatus string
 
 const (
-	UserClassStatusJoined    UserClassStatus = "joined"
-	UserClassStatusStudying  UserClassStatus = "studying"
-	UserClassStatusComplete  UserClassStatus = "complete"
+	UserClassStatusJoined   UserClassStatus = "joined"
+	UserClassStatusStudying UserClassStatus = "studying"
+	UserClassStatusComplete UserClassStatus = "complete"
 	UserClassStatusCanceled UserClassStatus = "canceled"
 )

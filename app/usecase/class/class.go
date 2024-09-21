@@ -210,11 +210,6 @@ func (uc *useCase) DeleteClass(ctx context.Context, req *DeleteClassRequest) (*D
 
 func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*CheckInOutResponse, error) {
 	const op errs.Op = "class.useCase.CheckInOut"
-	users, err := uc.repo.User.Where(uc.repo.User.Username.In(req.Usernames...)).Find()
-	if err != nil {
-		logger.Error(op, " get users errors ", err)
-		return nil, errs.E(op, errs.Database, err)
-	}
 
 	loc, _ := time_function.LoadLocation(entity.TimeZone)
 
@@ -225,19 +220,18 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 	}
 
 	checkInRequests := make([]*entity.CheckInOut, 0)
-	for _, user := range users {
+	for _, userClassID := range req.UserClassIDs {
 		checkInRequests = append(checkInRequests, &entity.CheckInOut{
-			ID:       uuid.New(),
-			Username: user.Username,
-			Action:   req.Action,
-			Date:     date.AsDate(),
-			ClassID:  req.ClassID,
+			ID:          uuid.New(),
+			UserClassID: userClassID,
+			Action:      req.Action,
+			Date:        date.AsDate(),
 		})
 	}
 
 	err = uc.repo.CheckInOut.Create(checkInRequests...)
 	if err != nil {
-		logger.Error(op, " create check in errors ", err)
+		logger.WithError(err).Error(op, " create check in errors ")
 		return nil, errs.E(op, errs.Database, err)
 	}
 
@@ -362,17 +356,17 @@ func (uc *useCase) CheckInOutHistories(ctx context.Context, req *CheckInOutHisto
 		return nil, errs.E(op, errKind, "Validate request error")
 	}
 
-	checkInOuts, err := uc.repo.CheckInOut.Where(
-		uc.repo.CheckInOut.ClassID.Eq(req.ClassID),
-		uc.repo.CheckInOut.Date.Eq(req.Date),
-	).Find()
+	userClasses, err := uc.repo.UserClass.
+		Where(uc.repo.UserClass.ClassID.Eq(req.ClassID)).
+		Preload(uc.repo.UserClass.CheckInOut.On(uc.repo.CheckInOut.Date.Eq(req.Date))).
+		Find()
 	if err != nil {
-		logger.Error(op, " get check in out errors ", err)
+		logger.WithError(err).Error(op, " get check in out errors")
 		return nil, errs.E(op, errs.Database, err)
 	}
 
 	return &CheckInOutHistoriesResponse{
-		Histories: toCheckInOutHistoriesResponse(checkInOuts),
+		Histories: toCheckInOutHistoriesResponse(userClasses),
 	}, nil
 }
 

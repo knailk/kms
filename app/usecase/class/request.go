@@ -112,9 +112,8 @@ func (r *RemoveMembersFromClassRequest) Validate() errs.Kind {
 }
 
 type CheckInOutRequest struct {
-	ClassID   uuid.UUID               `json:"-"`
-	Usernames []string                `json:"usernames"`
-	Action    entity.CheckInOutAction `json:"action"`
+	UserClassIDs []uuid.UUID             `json:"userClassIDs"`
+	Action       entity.CheckInOutAction `json:"action"`
 }
 
 type CheckInOutHistoriesRequest struct {

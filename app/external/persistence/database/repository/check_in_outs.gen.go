@@ -28,10 +28,9 @@ func newCheckInOut(db *gorm.DB, opts ...gen.DOOption) checkInOut {
 	tableName := _checkInOut.checkInOutDo.TableName()
 	_checkInOut.ALL = field.NewAsterisk(tableName)
 	_checkInOut.ID = field.NewField(tableName, "id")
-	_checkInOut.Username = field.NewString(tableName, "username")
+	_checkInOut.UserClassID = field.NewField(tableName, "user_class_id")
 	_checkInOut.Action = field.NewString(tableName, "action")
 	_checkInOut.Date = field.NewInt64(tableName, "date")
-	_checkInOut.ClassID = field.NewField(tableName, "class_id")
 	_checkInOut.CreatedAt = field.NewTime(tableName, "created_at")
 	_checkInOut.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -43,14 +42,13 @@ func newCheckInOut(db *gorm.DB, opts ...gen.DOOption) checkInOut {
 type checkInOut struct {
 	checkInOutDo
 
-	ALL       field.Asterisk
-	ID        field.Field
-	Username  field.String
-	Action    field.String
-	Date      field.Int64
-	ClassID   field.Field
-	CreatedAt field.Time
-	UpdatedAt field.Time
+	ALL         field.Asterisk
+	ID          field.Field
+	UserClassID field.Field
+	Action      field.String
+	Date        field.Int64
+	CreatedAt   field.Time
+	UpdatedAt   field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -68,10 +66,9 @@ func (c checkInOut) As(alias string) *checkInOut {
 func (c *checkInOut) updateTableName(table string) *checkInOut {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewField(table, "id")
-	c.Username = field.NewString(table, "username")
+	c.UserClassID = field.NewField(table, "user_class_id")
 	c.Action = field.NewString(table, "action")
 	c.Date = field.NewInt64(table, "date")
-	c.ClassID = field.NewField(table, "class_id")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -90,12 +87,11 @@ func (c *checkInOut) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *checkInOut) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 7)
+	c.fieldMap = make(map[string]field.Expr, 6)
 	c.fieldMap["id"] = c.ID
-	c.fieldMap["username"] = c.Username
+	c.fieldMap["user_class_id"] = c.UserClassID
 	c.fieldMap["action"] = c.Action
 	c.fieldMap["date"] = c.Date
-	c.fieldMap["class_id"] = c.ClassID
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 }

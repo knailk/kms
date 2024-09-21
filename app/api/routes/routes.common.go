@@ -84,6 +84,6 @@ func newCommonRoute(
 		V1ClassRoute := apiV1Group.Group("/class")
 		V1ClassRoute.GET("/me", classHdl.GetClass)
 		V1ClassRoute.GET("/:id/members", classHdl.ListMembersInClass)
-		V1ClassRoute.POST("/:id/members", classHdl.CheckInOut)
+		V1ClassRoute.POST("/check-in-out", classHdl.CheckInOut)
 	}
 }

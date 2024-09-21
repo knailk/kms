@@ -216,8 +216,6 @@ func (h *handler) CheckInOut(ctx *gin.Context) {
 		return
 	}
 
-	req.ClassID = uuid.MustParse(ctx.Param("id"))
-
 	res, err := h.uc.CheckInOut(ctx, &req)
 	if err != nil {
 		errs.HTTPErrorResponse(ctx, errs.E(op, err))
