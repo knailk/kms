@@ -51,10 +51,15 @@ func newClass(db *gorm.DB, opts ...gen.DOOption) class {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("User", "entity.UserClass"),
-		CheckInOut: struct {
+		User: struct {
 			field.RelationField
 		}{
-			RelationField: field.NewRelation("User.CheckInOut", "entity.CheckInOut"),
+			RelationField: field.NewRelation("User.User", "entity.User"),
+		},
+		CheckInOuts: struct {
+			field.RelationField
+		}{
+			RelationField: field.NewRelation("User.CheckInOuts", "entity.CheckInOut"),
 		},
 	}
 
@@ -234,7 +239,10 @@ type classHasManyUser struct {
 
 	field.RelationField
 
-	CheckInOut struct {
+	User struct {
+		field.RelationField
+	}
+	CheckInOuts struct {
 		field.RelationField
 	}
 }

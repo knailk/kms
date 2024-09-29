@@ -225,6 +225,34 @@ func (h *handler) CheckInOut(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+// common
+func (h *handler) CheckInOutHistory(ctx *gin.Context) {
+	const op errs.Op = "handler.class.CheckInOut"
+
+	var req class.CheckInOutHistoriesRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		logger.WithError(err).Error("bind json error")
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error"))
+		return
+	}
+
+	classID, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "not uuid"))
+		return
+	}
+
+	req.ClassID = classID
+
+	res, err := h.uc.CheckInOutHistories(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
 // admin
 func (h *handler) CreateSchedule(ctx *gin.Context) {
 	const op errs.Op = "handler.class.CreateSchedule"

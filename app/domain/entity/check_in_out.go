@@ -7,10 +7,10 @@ import (
 )
 
 type CheckInOut struct {
-	ID          uuid.UUID `gorm:"primaryKey"`
-	UserClassID uuid.UUID
+	ID          uuid.UUID        `gorm:"primaryKey"`
+	UserClassID uuid.UUID        `gorm:"index:user_date_unique,unique"`
 	Action      CheckInOutAction `gorm:"type:\"CheckInOutAction\""`
-	Date        int64            `gorm:"index"`
+	Date        int64            `gorm:"index:user_date_unique,unique"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

@@ -8,13 +8,14 @@ import (
 
 type UserClass struct {
 	ID        uuid.UUID `gorm:"primaryKey"`
-	Username  string
-	ClassID   uuid.UUID
-	Status    string // joined, studying, complete, ...etc
+	Username  string    `gorm:"index:,unique,composite:username_class_id_unique"`
+	ClassID   uuid.UUID `gorm:"index:,unique,composite:username_class_id_unique"`
+	Status    string    // joined, studying, complete, ...etc
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	CheckInOut []CheckInOut `gorm:"foreignKey:UserClassID"`
+	User        *User         `gorm:"foreignKey:Username;references:Username"`
+	CheckInOuts []*CheckInOut `gorm:"foreignKey:UserClassID"`
 }
 
 type UserClassStatus string

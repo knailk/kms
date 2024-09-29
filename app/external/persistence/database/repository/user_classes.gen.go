@@ -33,10 +33,16 @@ func newUserClass(db *gorm.DB, opts ...gen.DOOption) userClass {
 	_userClass.Status = field.NewString(tableName, "status")
 	_userClass.CreatedAt = field.NewTime(tableName, "created_at")
 	_userClass.UpdatedAt = field.NewTime(tableName, "updated_at")
-	_userClass.CheckInOut = userClassHasManyCheckInOut{
+	_userClass.User = userClassHasOneUser{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("CheckInOut", "entity.CheckInOut"),
+		RelationField: field.NewRelation("User", "entity.User"),
+	}
+
+	_userClass.CheckInOuts = userClassHasManyCheckInOuts{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("CheckInOuts", "entity.CheckInOut"),
 	}
 
 	_userClass.fillFieldMap()
@@ -47,14 +53,16 @@ func newUserClass(db *gorm.DB, opts ...gen.DOOption) userClass {
 type userClass struct {
 	userClassDo
 
-	ALL        field.Asterisk
-	ID         field.Field
-	Username   field.String
-	ClassID    field.Field
-	Status     field.String
-	CreatedAt  field.Time
-	UpdatedAt  field.Time
-	CheckInOut userClassHasManyCheckInOut
+	ALL       field.Asterisk
+	ID        field.Field
+	Username  field.String
+	ClassID   field.Field
+	Status    field.String
+	CreatedAt field.Time
+	UpdatedAt field.Time
+	User      userClassHasOneUser
+
+	CheckInOuts userClassHasManyCheckInOuts
 
 	fieldMap map[string]field.Expr
 }
@@ -93,7 +101,7 @@ func (u *userClass) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *userClass) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 7)
+	u.fieldMap = make(map[string]field.Expr, 8)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["username"] = u.Username
 	u.fieldMap["class_id"] = u.ClassID
@@ -113,13 +121,13 @@ func (u userClass) replaceDB(db *gorm.DB) userClass {
 	return u
 }
 
-type userClassHasManyCheckInOut struct {
+type userClassHasOneUser struct {
 	db *gorm.DB
 
 	field.RelationField
 }
 
-func (a userClassHasManyCheckInOut) Where(conds ...field.Expr) *userClassHasManyCheckInOut {
+func (a userClassHasOneUser) Where(conds ...field.Expr) *userClassHasOneUser {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -132,27 +140,27 @@ func (a userClassHasManyCheckInOut) Where(conds ...field.Expr) *userClassHasMany
 	return &a
 }
 
-func (a userClassHasManyCheckInOut) WithContext(ctx context.Context) *userClassHasManyCheckInOut {
+func (a userClassHasOneUser) WithContext(ctx context.Context) *userClassHasOneUser {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a userClassHasManyCheckInOut) Session(session *gorm.Session) *userClassHasManyCheckInOut {
+func (a userClassHasOneUser) Session(session *gorm.Session) *userClassHasOneUser {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a userClassHasManyCheckInOut) Model(m *entity.UserClass) *userClassHasManyCheckInOutTx {
-	return &userClassHasManyCheckInOutTx{a.db.Model(m).Association(a.Name())}
+func (a userClassHasOneUser) Model(m *entity.UserClass) *userClassHasOneUserTx {
+	return &userClassHasOneUserTx{a.db.Model(m).Association(a.Name())}
 }
 
-type userClassHasManyCheckInOutTx struct{ tx *gorm.Association }
+type userClassHasOneUserTx struct{ tx *gorm.Association }
 
-func (a userClassHasManyCheckInOutTx) Find() (result []*entity.CheckInOut, err error) {
+func (a userClassHasOneUserTx) Find() (result *entity.User, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a userClassHasManyCheckInOutTx) Append(values ...*entity.CheckInOut) (err error) {
+func (a userClassHasOneUserTx) Append(values ...*entity.User) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -160,7 +168,7 @@ func (a userClassHasManyCheckInOutTx) Append(values ...*entity.CheckInOut) (err 
 	return a.tx.Append(targetValues...)
 }
 
-func (a userClassHasManyCheckInOutTx) Replace(values ...*entity.CheckInOut) (err error) {
+func (a userClassHasOneUserTx) Replace(values ...*entity.User) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -168,7 +176,7 @@ func (a userClassHasManyCheckInOutTx) Replace(values ...*entity.CheckInOut) (err
 	return a.tx.Replace(targetValues...)
 }
 
-func (a userClassHasManyCheckInOutTx) Delete(values ...*entity.CheckInOut) (err error) {
+func (a userClassHasOneUserTx) Delete(values ...*entity.User) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -176,11 +184,82 @@ func (a userClassHasManyCheckInOutTx) Delete(values ...*entity.CheckInOut) (err 
 	return a.tx.Delete(targetValues...)
 }
 
-func (a userClassHasManyCheckInOutTx) Clear() error {
+func (a userClassHasOneUserTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a userClassHasManyCheckInOutTx) Count() int64 {
+func (a userClassHasOneUserTx) Count() int64 {
+	return a.tx.Count()
+}
+
+type userClassHasManyCheckInOuts struct {
+	db *gorm.DB
+
+	field.RelationField
+}
+
+func (a userClassHasManyCheckInOuts) Where(conds ...field.Expr) *userClassHasManyCheckInOuts {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a userClassHasManyCheckInOuts) WithContext(ctx context.Context) *userClassHasManyCheckInOuts {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a userClassHasManyCheckInOuts) Session(session *gorm.Session) *userClassHasManyCheckInOuts {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a userClassHasManyCheckInOuts) Model(m *entity.UserClass) *userClassHasManyCheckInOutsTx {
+	return &userClassHasManyCheckInOutsTx{a.db.Model(m).Association(a.Name())}
+}
+
+type userClassHasManyCheckInOutsTx struct{ tx *gorm.Association }
+
+func (a userClassHasManyCheckInOutsTx) Find() (result []*entity.CheckInOut, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a userClassHasManyCheckInOutsTx) Append(values ...*entity.CheckInOut) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a userClassHasManyCheckInOutsTx) Replace(values ...*entity.CheckInOut) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a userClassHasManyCheckInOutsTx) Delete(values ...*entity.CheckInOut) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a userClassHasManyCheckInOutsTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a userClassHasManyCheckInOutsTx) Count() int64 {
 	return a.tx.Count()
 }
 

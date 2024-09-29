@@ -50,10 +50,26 @@ func toCheckInOutHistoriesResponse(userClasses []*entity.UserClass) []*CheckInOu
 	var responses []*CheckInOutHistoryResponse
 	for _, userClass := range userClasses {
 		responses = append(responses, &CheckInOutHistoryResponse{
-			Username: userClass.Username,
-			// Action:   userClass.Action.String(),
-			// Date:     userClass.Date,
+			Username:    userClass.Username,
+			FullName:    userClass.User.FullName,
+			PictureURL:  userClass.User.PictureURL,
+			UserClassID: userClass.ID,
+			Status:      userClass.Status,
+			CheckInOuts: toCheckInOuts(userClass.CheckInOuts),
 		})
 	}
+	return responses
+}
+
+func toCheckInOuts(checkInOuts []*entity.CheckInOut) []*CheckInOut {
+	var responses []*CheckInOut
+	for _, checkInOut := range checkInOuts {
+		responses = append(responses, &CheckInOut{
+			ID:     checkInOut.ID,
+			Action: checkInOut.Action,
+			Date:   checkInOut.Date,
+		})
+	}
+
 	return responses
 }

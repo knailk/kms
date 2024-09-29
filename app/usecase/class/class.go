@@ -5,10 +5,7 @@ import (
 	"kms/app/domain/entity"
 	"kms/app/errs"
 	"kms/app/external/persistence/database/repository"
-	"kms/pkg/date"
 	"kms/pkg/logger"
-	"kms/pkg/time_function"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gen"
@@ -211,25 +208,17 @@ func (uc *useCase) DeleteClass(ctx context.Context, req *DeleteClassRequest) (*D
 func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*CheckInOutResponse, error) {
 	const op errs.Op = "class.useCase.CheckInOut"
 
-	loc, _ := time_function.LoadLocation(entity.TimeZone)
-
-	date, err := date.FromTime(time.Now(), loc)
-	if err != nil {
-		logger.Error(op, " get date errors ", err)
-		return nil, errs.E(op, errs.Database, err)
-	}
-
 	checkInRequests := make([]*entity.CheckInOut, 0)
-	for _, userClassID := range req.UserClassIDs {
+	for _, checkInOut := range req.CheckInOuts {
 		checkInRequests = append(checkInRequests, &entity.CheckInOut{
 			ID:          uuid.New(),
-			UserClassID: userClassID,
+			UserClassID: checkInOut.UserClassID,
 			Action:      req.Action,
-			Date:        date.AsDate(),
+			Date:        checkInOut.Date,
 		})
 	}
 
-	err = uc.repo.CheckInOut.Create(checkInRequests...)
+	err := uc.repo.CheckInOut.Clauses(clause.OnConflict{DoNothing: true}).Create(checkInRequests...)
 	if err != nil {
 		logger.WithError(err).Error(op, " create check in errors ")
 		return nil, errs.E(op, errs.Database, err)
@@ -240,12 +229,39 @@ func (uc *useCase) CheckInOut(ctx context.Context, req *CheckInOutRequest) (*Che
 	}, nil
 }
 
+func (uc *useCase) CheckInOutHistories(ctx context.Context, req *CheckInOutHistoriesRequest) (*CheckInOutHistoriesResponse, error) {
+	const op errs.Op = "class.useCase.CheckInOutHistories"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
+
+	userClasses, err := uc.repo.UserClass.
+		Where(uc.repo.UserClass.ClassID.Eq(req.ClassID)).
+		Preload(uc.repo.UserClass.CheckInOuts.On(uc.repo.CheckInOut.Date.Between(req.FromDate, req.ToDate))).
+		Preload(uc.repo.UserClass.User).
+		Find()
+	if err != nil {
+		logger.WithError(err).Error(op, " get check in out errors")
+		return nil, errs.E(op, errs.Database, err)
+	}
+
+	return &CheckInOutHistoriesResponse{
+		Histories: toCheckInOutHistoriesResponse(userClasses),
+	}, nil
+}
+
 func (uc *useCase) ListMembersInClass(ctx context.Context, req *ListMembersInClassRequest) (*ListMembersInClassResponse, error) {
 	const op errs.Op = "class.useCase.ListUsersInClass"
+
+	if errKind := req.Validate(); errKind != errs.Other {
+		return nil, errs.E(op, errKind, "Validate request error")
+	}
 
 	rep := make([]*GetUserInClass, 0)
 	err := uc.repo.User.Select(
 		uc.repo.User.ALL,
+		uc.repo.UserClass.ID.As("user_class_id"),
 		uc.repo.UserClass.Status,
 		uc.repo.UserClass.CreatedAt.As("joined_at"),
 	).LeftJoin(
@@ -288,6 +304,7 @@ func (uc *useCase) AddMembersToClass(ctx context.Context, req *AddMembersToClass
 	usersChat := make([]*entity.ChatParticipant, 0)
 	for _, user := range usernames {
 		usersClass = append(usersClass, &entity.UserClass{
+			ID:       uuid.New(),
 			Username: user,
 			ClassID:  req.ClassID,
 			Status:   string(entity.UserClassStatusStudying),
@@ -347,27 +364,6 @@ func (uc *useCase) RemoveMembersFromClass(ctx context.Context, req *RemoveMember
 	}
 
 	return &RemoveMembersFromClassResponse{}, nil
-}
-
-func (uc *useCase) CheckInOutHistories(ctx context.Context, req *CheckInOutHistoriesRequest) (*CheckInOutHistoriesResponse, error) {
-	const op errs.Op = "class.useCase.CheckInOutHistories"
-
-	if errKind := req.Validate(); errKind != errs.Other {
-		return nil, errs.E(op, errKind, "Validate request error")
-	}
-
-	userClasses, err := uc.repo.UserClass.
-		Where(uc.repo.UserClass.ClassID.Eq(req.ClassID)).
-		Preload(uc.repo.UserClass.CheckInOut.On(uc.repo.CheckInOut.Date.Eq(req.Date))).
-		Find()
-	if err != nil {
-		logger.WithError(err).Error(op, " get check in out errors")
-		return nil, errs.E(op, errs.Database, err)
-	}
-
-	return &CheckInOutHistoriesResponse{
-		Histories: toCheckInOutHistoriesResponse(userClasses),
-	}, nil
 }
 
 func (uc *useCase) CreateSchedule(ctx context.Context, req *CreateScheduleRequest) (*CreateScheduleResponse, error) {

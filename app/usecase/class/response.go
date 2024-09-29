@@ -1,6 +1,7 @@
 package class
 
 import (
+	"kms/app/domain/entity"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,8 +55,11 @@ type GetUserInClass struct {
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phoneNumber"`
 	Address     string    `json:"address"`
+	Latitude    *float64  `json:"latitude"`
+	Longitude   *float64  `json:"longitude"`
 	Status      string    `json:"status"`
 	JoinedAt    time.Time `json:"joinedAt"`
+	UserClassID string    `json:"userClassID"`
 }
 
 type ListMembersInClassResponse struct {
@@ -70,10 +74,19 @@ type CheckInOutHistoriesResponse struct {
 	Histories []*CheckInOutHistoryResponse `json:"histories"`
 }
 
+type CheckInOut struct {
+	ID     uuid.UUID               `json:"id"`
+	Action entity.CheckInOutAction `json:"action"`
+	Date   int64                   `json:"date"`
+}
+
 type CheckInOutHistoryResponse struct {
-	Username string `json:"username"`
-	Action   string `json:"action"`
-	Date     int64  `json:"date"`
+	Username    string        `json:"username"`
+	FullName    string        `json:"fullName"`
+	PictureURL  string        `json:"pictureURL"`
+	UserClassID uuid.UUID     `json:"userClassID"`
+	Status      string        `json:"status"`
+	CheckInOuts []*CheckInOut `json:"checkInOuts"`
 }
 
 type CreateScheduleResponse struct{}

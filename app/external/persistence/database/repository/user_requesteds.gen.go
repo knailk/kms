@@ -51,15 +51,23 @@ func newUserRequested(db *gorm.DB, opts ...gen.DOOption) userRequested {
 		},
 		User: struct {
 			field.RelationField
-			CheckInOut struct {
+			User struct {
+				field.RelationField
+			}
+			CheckInOuts struct {
 				field.RelationField
 			}
 		}{
 			RelationField: field.NewRelation("Class.User", "entity.UserClass"),
-			CheckInOut: struct {
+			User: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Class.User.CheckInOut", "entity.CheckInOut"),
+				RelationField: field.NewRelation("Class.User.User", "entity.User"),
+			},
+			CheckInOuts: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Class.User.CheckInOuts", "entity.CheckInOut"),
 			},
 		},
 	}
@@ -169,7 +177,10 @@ type userRequestedBelongsToClass struct {
 	}
 	User struct {
 		field.RelationField
-		CheckInOut struct {
+		User struct {
+			field.RelationField
+		}
+		CheckInOuts struct {
 			field.RelationField
 		}
 	}

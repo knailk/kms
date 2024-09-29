@@ -87,6 +87,13 @@ type ListMembersInClassRequest struct {
 	ClassID uuid.UUID `form:"-"`
 }
 
+func (l *ListMembersInClassRequest) Validate() errs.Kind {
+	if l.ClassID == uuid.Nil {
+		return errs.InvalidRequest
+	}
+	return errs.Other
+}
+
 type AddMembersToClassRequest struct {
 	ClassID   uuid.UUID `json:"-"`
 	Usernames []string  `json:"usernames"`
@@ -112,17 +119,21 @@ func (r *RemoveMembersFromClassRequest) Validate() errs.Kind {
 }
 
 type CheckInOutRequest struct {
-	UserClassIDs []uuid.UUID             `json:"userClassIDs"`
-	Action       entity.CheckInOutAction `json:"action"`
+	Action      entity.CheckInOutAction `json:"action"`
+	CheckInOuts []struct {
+		UserClassID uuid.UUID `json:"userClassID"`
+		Date        int64     `json:"date"`
+	} `json:"checkInOuts"`
 }
 
 type CheckInOutHistoriesRequest struct {
-	ClassID uuid.UUID `form:"-"`
-	Date    int64     `form:"date"`
+	ClassID  uuid.UUID `form:"-"`
+	FromDate int64     `form:"fromDate"`
+	ToDate   int64     `form:"toDate"`
 }
 
 func (c *CheckInOutHistoriesRequest) Validate() errs.Kind {
-	if c.ClassID == uuid.Nil || c.Date == 0 {
+	if c.ClassID == uuid.Nil || (c.FromDate == 0 && c.ToDate == 0) {
 		return errs.InvalidRequest
 	}
 	return errs.Other
