@@ -3,7 +3,7 @@
 
 // The build tag makes sure the stub is not built in the final build.
 
-package registry
+package registry 
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"kms/app/usecase/user"
 	"kms/app/usecase/chat"
 	"kms/app/usecase/class"
+	"kms/app/usecase/cron"
 )
 
 func InjectedAuthUseCase(
@@ -46,4 +47,13 @@ func InjectedClassUseCase(
 	wire.Build(BuilderSet, class.NewUseCase)
 	return nil
 }
+
+func InjectedCronUseCase(
+	ctx context.Context,
+	provider *Provider,
+) cron.IUseCase {
+	wire.Build(BuilderSet, cron.NewUseCase)
+	return nil
+}
+
 

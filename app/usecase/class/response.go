@@ -16,7 +16,7 @@ type GetClassResponse struct {
 	FromDate    int64              `json:"fromDate"`
 	ToDate      int64              `json:"toDate"`
 	Description string             `json:"description"`
-	Status      string             `json:"status"`
+	Status      entity.ClassStatus `json:"status"`
 	ClassName   string             `json:"className"`
 	AgeGroup    int                `json:"ageGroup"`
 	Price       float64            `json:"price"`

@@ -49,6 +49,7 @@ func (uc *useCase) CreateClass(ctx context.Context, req *CreateClassRequest) (*C
 			DriverID:    req.DriverID,
 			FromDate:    req.FromDate,
 			ToDate:      req.ToDate,
+			Status:      entity.Scheduled,
 			Description: req.Description,
 			ClassName:   req.ClassName,
 			AgeGroup:    req.AgeGroup,

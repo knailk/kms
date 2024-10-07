@@ -33,7 +33,7 @@ func newClass(db *gorm.DB, opts ...gen.DOOption) class {
 	_class.FromDate = field.NewInt64(tableName, "from_date")
 	_class.ToDate = field.NewInt64(tableName, "to_date")
 	_class.Description = field.NewString(tableName, "description")
-	_class.Status = field.NewString(tableName, "status")
+	_class.Status = field.NewInt(tableName, "status")
 	_class.ClassName = field.NewString(tableName, "class_name")
 	_class.AgeGroup = field.NewInt(tableName, "age_group")
 	_class.Price = field.NewFloat64(tableName, "price")
@@ -78,7 +78,7 @@ type class struct {
 	FromDate    field.Int64
 	ToDate      field.Int64
 	Description field.String
-	Status      field.String
+	Status      field.Int
 	ClassName   field.String
 	AgeGroup    field.Int
 	Price       field.Float64
@@ -111,7 +111,7 @@ func (c *class) updateTableName(table string) *class {
 	c.FromDate = field.NewInt64(table, "from_date")
 	c.ToDate = field.NewInt64(table, "to_date")
 	c.Description = field.NewString(table, "description")
-	c.Status = field.NewString(table, "status")
+	c.Status = field.NewInt(table, "status")
 	c.ClassName = field.NewString(table, "class_name")
 	c.AgeGroup = field.NewInt(table, "age_group")
 	c.Price = field.NewFloat64(table, "price")

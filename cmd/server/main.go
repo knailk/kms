@@ -7,6 +7,7 @@ import (
 	"kms/app/registry"
 	"kms/database/sqldb"
 	"kms/internal/config"
+	"kms/internal/cron"
 	"kms/internal/httpserver"
 	"kms/internal/jwt"
 	"kms/internal/localtime"
@@ -89,6 +90,11 @@ func Run() (err error) {
 	provider.DB, err = sqldb.DBInit(ctx, config.NewPostgreSQLDSN(cfg), tasks)
 	if err != nil {
 		logger.Fatal("sqldb.DBInit error: ", err)
+	}
+
+	if err = cron.StartCron(ctx, provider, tasks); err != nil {
+		logger.WithError(err).Error(err, "start cron job error")
+		return
 	}
 
 	// initialize HTTP Server enfolding a http.Server with default timeouts, a Gin router with /api subroute

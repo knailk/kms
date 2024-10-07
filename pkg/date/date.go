@@ -9,11 +9,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var loc string = "Asia/Ho_Chi_Minh"
+// var loc string = "Asia/Ho_Chi_Minh"
 
 type Date struct {
 	date int64
 	time time.Time
+}
+
+func ToDate(t time.Time) int64 {
+	y, m, d := t.Date()
+	return int64(d + 100*int(m) + 10000*y)
 }
 
 func Parse(date int64, loc *time.Location) (Date, error) {
