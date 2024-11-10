@@ -6,6 +6,7 @@ import (
 	"kms/app/api/handler/base"
 	"kms/app/api/handler/chat"
 	"kms/app/api/handler/class"
+	"kms/app/api/handler/dish"
 	"kms/app/api/handler/user"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
@@ -41,6 +42,15 @@ func newCommonRoute(
 		V1ClassRoute.GET("", classHdl.ListClasses)
 	}
 
+	dishHdl := dish.NewHandler(
+		registry.InjectedDishUseCase(ctx, provider),
+		authCookie,
+	)
+	{
+		V1DishRoute := apiV1Group.Group("/dishes")
+		V1DishRoute.GET("/week", dishHdl.GetDishesForWeek)
+	}
+
 	// ------------------------------------ BEFORE LOGIN ------------------------------------
 
 	apiV1Group.Use(author.NewAuthMiddleware(entity.UserTypeCommon))
@@ -51,7 +61,7 @@ func newCommonRoute(
 		V1AuthTokenRoute := apiV1Group.Group("/auth")
 		V1AuthTokenRoute.POST("/refresh", authHdl.Refresh)
 		V1AuthTokenRoute.POST("/logout", authHdl.Logout)
-		// V1AuthRoute.POST("/change-password", authHdl.ChangePassword)
+		V1AuthTokenRoute.PUT("/change-password", authHdl.ChangePassword)
 	}
 	{
 		chatHdl := chat.NewHandler(

@@ -31,6 +31,8 @@ type RefreshResponse struct {
 	RefreshToken authjwt.Token `json:"-"`
 }
 
+type ChangePasswordResponse struct{}
+
 type RegisterResponse struct {
 }
 

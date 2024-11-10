@@ -93,6 +93,37 @@ func (uc *useCase) Refresh(ctx context.Context, req *RefreshRequest) (*RefreshRe
 	}, nil
 }
 
+func (uc *useCase) ChangePassword(ctx context.Context, req *ChangePasswordRequest) (*ChangePasswordResponse, error) {
+	const op errs.Op = "auth.useCase.ChangePassword"
+
+	user, err := uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).First()
+	if err != nil {
+		return nil, errs.E(op, err)
+	}
+
+	if user.IsDeleted {
+		return nil, errs.E(op, errs.NotExist, "user is deleted")
+	}
+
+	if !helpers.ValidateHash(req.OldPassword, user.Password) {
+		return nil, errs.E(op, errs.InvalidRequest, "wrong password")
+	}
+
+	hashedPassword, err := helpers.GenerateHash(req.NewPassword)
+	if err != nil {
+		logger.WithError(err).Error(op, " failed to hash password")
+		return nil, errs.E(op, err, "failed to hash password")
+	}
+
+	_, err = uc.repo.User.Where(uc.repo.User.Username.Eq(req.Username)).Update(uc.repo.User.Password, hashedPassword)
+	if err != nil {
+		logger.WithError(err).Error(op, " update password error")
+		return nil, errs.E(op, err, "failed to update password")
+	}
+
+	return &ChangePasswordResponse{}, nil
+}
+
 func (uc *useCase) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	const op errs.Op = "auth.useCase.Register"
 

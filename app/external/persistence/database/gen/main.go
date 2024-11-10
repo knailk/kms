@@ -28,6 +28,7 @@ func main() {
 		entity.Class{},
 		entity.Schedule{},
 		entity.UserClass{},
+		entity.Dish{},
 	)
 
 	// Execute the generator

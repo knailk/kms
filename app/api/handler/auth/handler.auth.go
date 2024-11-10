@@ -6,6 +6,7 @@ import (
 	"kms/app/errs"
 	"kms/app/usecase/auth"
 	"kms/app/usecase/class"
+	"kms/pkg/authjwt"
 	"kms/pkg/logger"
 	"net/http"
 
@@ -69,6 +70,28 @@ func (h *handler) Refresh(ctx *gin.Context) {
 func (h *handler) Logout(ctx *gin.Context) {
 	h.authCookie.ExpireJWTCookie(ctx)
 	ctx.JSON(http.StatusOK, "OK")
+}
+
+func (h *handler) ChangePassword(ctx *gin.Context) {
+	const op errs.Op = "handler.auth.Register"
+
+	var req auth.ChangePasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		errs.HTTPErrorResponse(ctx, errs.E(op, errs.InvalidRequest, "bind json error: "+err.Error()))
+		return
+	}
+
+	userClaims := ctx.MustGet(entity.CtxAuthenticatedUserKey).(*authjwt.AuthClaims)
+
+	req.Username = userClaims.Username
+
+	rep, err := h.uc.ChangePassword(ctx, &req)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rep)
 }
 
 func (h *handler) RegisterRequest(ctx *gin.Context) {

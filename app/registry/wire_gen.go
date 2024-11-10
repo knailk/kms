@@ -13,6 +13,7 @@ import (
 	"kms/app/usecase/chat"
 	"kms/app/usecase/class"
 	"kms/app/usecase/cron"
+	"kms/app/usecase/dish"
 	"kms/app/usecase/user"
 )
 
@@ -50,5 +51,12 @@ func InjectedCronUseCase(ctx context.Context, provider *Provider) cron.IUseCase 
 	db := provider.DB
 	postgresRepository := repository.NewPostgresRepository(db)
 	iUseCase := cron.NewUseCase(postgresRepository)
+	return iUseCase
+}
+
+func InjectedDishUseCase(ctx context.Context, provider *Provider) dish.IUseCase {
+	db := provider.DB
+	postgresRepository := repository.NewPostgresRepository(db)
+	iUseCase := dish.NewUseCase(postgresRepository)
 	return iUseCase
 }

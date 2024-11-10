@@ -16,6 +16,12 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+type ChangePasswordRequest struct {
+	Username    string `json:"-"`
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
 type RegisterRequest struct {
 	Username    string    `json:"username"`
 	FullName    string    `json:"fullName"`

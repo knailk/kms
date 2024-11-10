@@ -169,13 +169,14 @@ func autoMigrate(db *gorm.DB) {
 	db.AutoMigrate(
 		// add more models here for auto migrate when update models
 		// entity.User{},
-		entity.UserRequested{},
+		// entity.UserRequested{},
 		// entity.ChatMessage{},
 		// entity.ChatParticipant{},
-		entity.ChatSession{},
-		entity.CheckInOut{},
+		// entity.ChatSession{},
+		// entity.CheckInOut{},
 		// entity.Class{},
 		// entity.Schedule{},
 		// entity.UserClass{},
+		entity.Dish{},
 	)
 }

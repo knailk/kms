@@ -5,6 +5,7 @@ import (
 	"kms/app/api/handler/auth"
 	"kms/app/api/handler/base"
 	"kms/app/api/handler/class"
+	"kms/app/api/handler/dish"
 	"kms/app/domain/entity"
 	"kms/app/middleware/author"
 	"kms/app/registry"
@@ -48,5 +49,17 @@ func newAdminRoute(
 		V1ClassRoute.POST("/schedules", classHdl.CreateSchedule)
 		V1ClassRoute.PUT("/schedules/:id", classHdl.UpdateSchedule)
 		V1ClassRoute.DELETE("/schedules/:id", classHdl.DeleteSchedule)
+	}
+
+	dishHdl := dish.NewHandler(
+		registry.InjectedDishUseCase(ctx, provider),
+		authCookie,
+	)
+	//dish
+	{
+		V1DishRoute := apiV1Group.Group("/dishes")
+		V1DishRoute.POST("", dishHdl.CreateDish)
+		V1DishRoute.PUT("/:id", dishHdl.UpdateDish)
+		V1DishRoute.DELETE("/:id", dishHdl.DeleteDish)
 	}
 }

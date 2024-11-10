@@ -14,6 +14,7 @@ import (
 	"kms/app/usecase/chat"
 	"kms/app/usecase/class"
 	"kms/app/usecase/cron"
+	"kms/app/usecase/dish"
 )
 
 func InjectedAuthUseCase(
@@ -53,6 +54,14 @@ func InjectedCronUseCase(
 	provider *Provider,
 ) cron.IUseCase {
 	wire.Build(BuilderSet, cron.NewUseCase)
+	return nil
+}
+
+func InjectedDishUseCase(
+	ctx context.Context,
+	provider *Provider,
+) dish.IUseCase {
+	wire.Build(BuilderSet, dish.NewUseCase)
 	return nil
 }
 

@@ -22,6 +22,7 @@ var (
 	ChatSession     *chatSession
 	CheckInOut      *checkInOut
 	Class           *class
+	Dish            *dish
 	Schedule        *schedule
 	User            *user
 	UserClass       *userClass
@@ -35,6 +36,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	ChatSession = &Q.ChatSession
 	CheckInOut = &Q.CheckInOut
 	Class = &Q.Class
+	Dish = &Q.Dish
 	Schedule = &Q.Schedule
 	User = &Q.User
 	UserClass = &Q.UserClass
@@ -49,6 +51,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		ChatSession:     newChatSession(db, opts...),
 		CheckInOut:      newCheckInOut(db, opts...),
 		Class:           newClass(db, opts...),
+		Dish:            newDish(db, opts...),
 		Schedule:        newSchedule(db, opts...),
 		User:            newUser(db, opts...),
 		UserClass:       newUserClass(db, opts...),
@@ -64,6 +67,7 @@ type Query struct {
 	ChatSession     chatSession
 	CheckInOut      checkInOut
 	Class           class
+	Dish            dish
 	Schedule        schedule
 	User            user
 	UserClass       userClass
@@ -80,6 +84,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		ChatSession:     q.ChatSession.clone(db),
 		CheckInOut:      q.CheckInOut.clone(db),
 		Class:           q.Class.clone(db),
+		Dish:            q.Dish.clone(db),
 		Schedule:        q.Schedule.clone(db),
 		User:            q.User.clone(db),
 		UserClass:       q.UserClass.clone(db),
@@ -103,6 +108,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		ChatSession:     q.ChatSession.replaceDB(db),
 		CheckInOut:      q.CheckInOut.replaceDB(db),
 		Class:           q.Class.replaceDB(db),
+		Dish:            q.Dish.replaceDB(db),
 		Schedule:        q.Schedule.replaceDB(db),
 		User:            q.User.replaceDB(db),
 		UserClass:       q.UserClass.replaceDB(db),
@@ -116,6 +122,7 @@ type queryCtx struct {
 	ChatSession     IChatSessionDo
 	CheckInOut      ICheckInOutDo
 	Class           IClassDo
+	Dish            IDishDo
 	Schedule        IScheduleDo
 	User            IUserDo
 	UserClass       IUserClassDo
@@ -129,6 +136,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		ChatSession:     q.ChatSession.WithContext(ctx),
 		CheckInOut:      q.CheckInOut.WithContext(ctx),
 		Class:           q.Class.WithContext(ctx),
+		Dish:            q.Dish.WithContext(ctx),
 		Schedule:        q.Schedule.WithContext(ctx),
 		User:            q.User.WithContext(ctx),
 		UserClass:       q.UserClass.WithContext(ctx),
